@@ -1,17 +1,14 @@
-from enum import Enum, auto
 from random import randint, random, sample
 
-
-class CasillaLaberinto(Enum):
-    MURALLA = auto()
-    CAMINO = auto()
-    JUGADOR = auto()
-    META_FALSA = auto()
-    META_REAL = auto()
+from casilla_laberinto import CasillaLaberinto
+from jugador import Jugador
+from movimientos import MovimientosPosibles
 
 
 class Laberinto:
     laberinto: list[list[CasillaLaberinto]]
+
+    jugador: Jugador
 
     dimenciones: tuple[int, int]
     prob_murallas: float
@@ -29,6 +26,8 @@ class Laberinto:
         prob_mover_murallas: float = 0.3,
         n_metas: int = 3,
     ):
+        self.jugador = Jugador(self)
+
         self.dimenciones = dimenciones
         self.prob_murallas = prob_murallas
         self.prob_mover_murallas = prob_mover_murallas
@@ -39,12 +38,12 @@ class Laberinto:
         self.metas_pos = []
 
         try:
-            self._crear_leberinto()
+            self._crear_laberinto()
         except Exception as e:
             print(f"Error al crear el laberinto: {e}")
             raise
 
-    def _crear_leberinto(self):
+    def _crear_laberinto(self):
         filas, columnas = self.dimenciones
         self.laberinto = []
         caminos_libres = []
@@ -85,17 +84,24 @@ class Laberinto:
             self.metas_pos.append((mx, my))
 
     def tick(self):
-        """Mueve las murallas de forma aleatoria"""
-        movimientos_validos = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+        """Mueve las murallas de forma aleatoria y ejecuta el tick del jugador."""
+        self.mover_jugador()
+
+        self.mover_murallas()
+
+    def mover_murallas(self):
         nuevas_murallas = set()
         filas, columnas = self.dimenciones
 
-        for id, (mx, my) in enumerate(self.murallas_pos):
+        for mx, my in self.murallas_pos:
             nueva_pos = (mx, my)
             if random() <= self.prob_mover_murallas:
-                dx, dy = movimientos_validos[randint(0, 3)]
+                movimientos_muralla = [
+                    m for m in MovimientosPosibles if m != MovimientosPosibles.NO_MOVERSE
+                ]
+                mov = movimientos_muralla[randint(0, len(movimientos_muralla) - 1)]
+                dx, dy = mov.value
                 nx, ny = mx + dx, my + dy
-
                 # Verifica que la nueva posición esté dentro del laberinto y no colisione
                 if (
                     0 <= nx < filas
@@ -105,14 +111,39 @@ class Laberinto:
                 ):
                     # Actualiza la casilla anterior a CAMINO
                     self.laberinto[mx][my] = CasillaLaberinto.CAMINO
-
                     # Mueve la muralla
                     self.laberinto[nx][ny] = CasillaLaberinto.MURALLA
-
                     nueva_pos = (nx, ny)
-
             nuevas_murallas.add(nueva_pos)
         self.murallas_pos = list(nuevas_murallas)
+
+    def mover_jugador(self):
+        # Mover jugador usando su tick
+        movimiento_jugador = self.jugador.tick().value
+        dx, dy = movimiento_jugador
+        x, y = self.jugador_pos
+        nx, ny = x + dx, y + dy
+
+        # Actualiza la casilla anterior a CAMINO
+        self.laberinto[x][y] = CasillaLaberinto.CAMINO
+        # Actualiza la posición del jugador
+        self.jugador_pos = (nx, ny)
+        self.laberinto[nx][ny] = CasillaLaberinto.JUGADOR
+
+    def casillas_adyacentes(self, pos=None):
+        """Devuelve un dict con los movimientos posibles y el tipo de casilla adyacente al jugador (o a la posición dada)."""
+        if pos is None:
+            x, y = self.jugador_pos
+        else:
+            x, y = pos
+
+        adyacentes = {}
+        for mov in MovimientosPosibles:
+            dx, dy = mov.value
+            nx, ny = x + dx, y + dy
+            if 0 <= nx < self.dimenciones[0] and 0 <= ny < self.dimenciones[1]:
+                adyacentes[mov] = self.laberinto[nx][ny]
+        return adyacentes
 
     def _mostrar_markdown(self) -> str:
         """Devuelve una representación del laberinto en formato markdown."""
