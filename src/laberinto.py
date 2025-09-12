@@ -9,6 +9,7 @@ class Laberinto:
     laberinto: list[list[CasillaLaberinto]]
 
     jugador: Jugador
+    ticks_transcurridos: int
 
     dimenciones: tuple[int, int]
     prob_murallas: float
@@ -17,7 +18,10 @@ class Laberinto:
 
     jugador_pos: tuple[int, int]
     metas_pos: list[tuple[int, int]]
+    meta_real_pos: tuple[int, int]
     murallas_pos: list[tuple[int, int]]
+
+    tipo_anterior_casilla_actual: CasillaLaberinto | None
 
     def __init__(
         self,
@@ -27,6 +31,7 @@ class Laberinto:
         n_metas: int = 3,
     ):
         self.jugador = Jugador(self)
+        self.ticks_transcurridos = 0
 
         self.dimenciones = dimenciones
         self.prob_murallas = prob_murallas
@@ -36,6 +41,8 @@ class Laberinto:
 
         self.n_metas = n_metas
         self.metas_pos = []
+
+        self.tipo_anterior_casilla_actual = None
 
         try:
             self._crear_laberinto()
@@ -79,6 +86,7 @@ class Laberinto:
         for id, (mx, my) in enumerate(metas):
             if id == real_id:
                 self.laberinto[mx][my] = CasillaLaberinto.META_REAL
+                self.meta_real_pos = (mx, my)
             else:
                 self.laberinto[mx][my] = CasillaLaberinto.META_FALSA
             self.metas_pos.append((mx, my))
@@ -119,16 +127,27 @@ class Laberinto:
 
     def mover_jugador(self):
         # Mover jugador usando su tick
-        movimiento_jugador = self.jugador.tick().value
-        dx, dy = movimiento_jugador
+        movimiento_jugador = self.jugador.tick()
+        if movimiento_jugador == MovimientosPosibles.NO_MOVERSE:
+            return
+
+        # Calcular coordenadas nuevas
+        dx, dy = movimiento_jugador.value
         x, y = self.jugador_pos
         nx, ny = x + dx, y + dy
 
-        # Actualiza la casilla anterior a CAMINO
-        self.laberinto[x][y] = CasillaLaberinto.CAMINO
+        # Actualiza la casilla anterior
+        if self.tipo_anterior_casilla_actual is None:
+            self.laberinto[x][y] = CasillaLaberinto.CAMINO
+        else:
+            self.laberinto[x][y] = self.tipo_anterior_casilla_actual
+
         # Actualiza la posición del jugador
+        self.tipo_anterior_casilla_actual = self.laberinto[nx][ny]
         self.jugador_pos = (nx, ny)
         self.laberinto[nx][ny] = CasillaLaberinto.JUGADOR
+
+        self.ticks_transcurridos += 1
 
     def casillas_adyacentes(self, pos=None):
         """Devuelve un dict con los movimientos posibles y el tipo de casilla adyacente al jugador (o a la posición dada)."""
@@ -144,6 +163,11 @@ class Laberinto:
             if 0 <= nx < self.dimenciones[0] and 0 <= ny < self.dimenciones[1]:
                 adyacentes[mov] = self.laberinto[nx][ny]
         return adyacentes
+
+    def jugador_gano(self) -> bool:
+        if self.jugador_pos == self.meta_real_pos:
+            return True
+        return False
 
     def _mostrar_markdown(self) -> str:
         """Devuelve una representación del laberinto en formato markdown."""

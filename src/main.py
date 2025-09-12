@@ -36,6 +36,12 @@ def simular_laberinto(laberinto: Laberinto):
                 break
 
             mover_jugador_imprimir_laberinto(laberinto=laberinto)
+
+            if laberinto.jugador_gano():
+                print("LLEGO A LA META!!!")
+                print(f"Se demoro {laberinto.ticks_transcurridos} ticks.")
+                exit(0)
+
             if manejar_opcion_salida_espera() == SALIR:
                 break
 
