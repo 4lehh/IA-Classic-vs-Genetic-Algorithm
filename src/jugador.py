@@ -1,3 +1,5 @@
+"""Módulo que define la clase Jugador."""
+
 from random import choice
 from typing import TYPE_CHECKING
 
@@ -9,9 +11,12 @@ if TYPE_CHECKING:
 
 
 class Jugador:
+    """Clase que representa al jugador en el laberinto."""
+
     laberinto: "Laberinto"
 
     def __init__(self, laberinto: "Laberinto"):
+        """Inicializa el jugador con referencia al laberinto."""
         self.laberinto = laberinto
 
     def tick(self):

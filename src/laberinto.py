@@ -1,3 +1,5 @@
+"""Módulo que define la clase Laberinto y su lógica de funcionamiento."""
+
 from random import randint, random, sample
 
 from casilla_laberinto import CasillaLaberinto
@@ -6,6 +8,8 @@ from movimientos import MovimientosPosibles
 
 
 class Laberinto:
+    """Clase que representa un laberinto con jugador, metas y murallas."""
+
     laberinto: list[list[CasillaLaberinto]]
 
     jugador: Jugador
@@ -30,6 +34,14 @@ class Laberinto:
         prob_mover_murallas: float = 0.3,
         n_metas: int = 3,
     ):
+        """Inicializa el laberinto con sus dimensiones y probabilidades.
+
+        Args:
+            dimenciones (tuple[int, int]): Dimensiones del laberinto.
+            prob_murallas (float): Probabilidad de generacion de murallas.
+            prob_mover_murallas (float): Probabilidad de mover cada muralla.
+            n_metas (int): Número de metas en el laberinto.
+        """
         self.jugador = Jugador(self)
         self.ticks_transcurridos = 0
 
@@ -98,6 +110,7 @@ class Laberinto:
         self.mover_murallas()
 
     def mover_murallas(self):
+        """Mueve las murallas de forma aleatoria en el laberinto."""
         nuevas_murallas = set()
         filas, columnas = self.dimenciones
 
@@ -126,6 +139,7 @@ class Laberinto:
         self.murallas_pos = list(nuevas_murallas)
 
     def mover_jugador(self):
+        """Mueve al jugador según su tick y actualiza su posición en el laberinto."""
         # Mover jugador usando su tick
         movimiento_jugador = self.jugador.tick()
         if movimiento_jugador == MovimientosPosibles.NO_MOVERSE:
@@ -165,6 +179,12 @@ class Laberinto:
         return adyacentes
 
     def jugador_gano(self) -> bool:
+        """
+        Verifica si el jugador ha llegado a la meta real.
+
+        Returns:
+            bool: True si el jugador está en la meta real, False en caso contrario.
+        """
         if self.jugador_pos == self.meta_real_pos:
             return True
         return False
@@ -184,5 +204,6 @@ class Laberinto:
         return "\n".join(filas_md)
 
     def imprimir(self):
+        """Imprime el laberinto en formato markdown y muestra la leyenda de símbolos."""
         print(self._mostrar_markdown())
         print("\nLeyenda: 🧑=Jugador, 🏁=Meta real, ❌=Meta falsa, ⬛=Muralla, ⬜=Camino")

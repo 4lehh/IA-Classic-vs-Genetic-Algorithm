@@ -1,3 +1,5 @@
+"""Módulo principal para la simulación y manejo del laberinto."""
+
 import os
 
 from laberinto import Laberinto
@@ -7,6 +9,7 @@ CONTINUAR = False
 
 
 def manejar_opcion_salida_espera() -> bool:
+    """Maneja la opción de salida o espera del usuario en el menú principal."""
     opcion = input("Presiona Enter para continuar, 'q' o 'exit' para salir:\n> ").strip().lower()
     if opcion in ["q", "exit"]:
         print("Saliendo...")
@@ -15,6 +18,12 @@ def manejar_opcion_salida_espera() -> bool:
 
 
 def mover_murallas_imprimir_laberinto(laberinto: Laberinto):
+    """
+    Mueve las murallas y muestra el laberinto actualizado.
+
+    Args:
+        laberinto: Instancia del laberinto a modificar.
+    """
     laberinto.mover_murallas()
 
     os.system("cls" if os.name == "nt" else "clear")  # Limpia la consola
@@ -22,6 +31,12 @@ def mover_murallas_imprimir_laberinto(laberinto: Laberinto):
 
 
 def mover_jugador_imprimir_laberinto(laberinto: Laberinto):
+    """
+    Mueve el jugador y muestra el laberinto actualizado.
+
+    Args:
+        laberinto: Instancia del laberinto a modificar.
+    """
     laberinto.mover_jugador()
 
     os.system("cls" if os.name == "nt" else "clear")  # Limpia la consola
@@ -29,6 +44,12 @@ def mover_jugador_imprimir_laberinto(laberinto: Laberinto):
 
 
 def simular_laberinto(laberinto: Laberinto):
+    """
+    Simula el avance del jugador y murallas en el laberinto.
+
+    Args:
+        laberinto: Instancia del laberinto a simular.
+    """
     try:
         while True:
             mover_murallas_imprimir_laberinto(laberinto=laberinto)
@@ -51,6 +72,7 @@ def simular_laberinto(laberinto: Laberinto):
 
 
 def main():
+    """Función principal que ejecuta la simulación del laberinto."""
     laberinto = Laberinto(
         dimenciones=(20, 20), prob_murallas=0.3, prob_mover_murallas=0.01, n_metas=3
     )
