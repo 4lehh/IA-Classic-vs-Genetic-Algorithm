@@ -145,6 +145,8 @@ class Laberinto:
 
     def mover_jugador(self):
         """Mueve al jugador según su tick y actualiza su posición en el laberinto."""
+        self.ticks_transcurridos += 1
+
         # Mover jugador usando su tick
         movimiento_jugador = self.jugador.tick()
         if movimiento_jugador == MovimientosPosibles.NO_MOVERSE:
@@ -165,8 +167,6 @@ class Laberinto:
         self.tipo_anterior_casilla_actual = self.laberinto[nx][ny]
         self.jugador_pos = (nx, ny)
         self.laberinto[nx][ny] = CasillaLaberinto.JUGADOR
-
-        self.ticks_transcurridos += 1
 
     def casillas_adyacentes(self, pos=None):
         """Devuelve un dict con los movimientos posibles y el tipo de casilla adyacente al jugador (o a la posición dada)."""
