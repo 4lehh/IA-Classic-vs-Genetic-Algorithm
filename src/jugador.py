@@ -1,5 +1,6 @@
 """Módulo que define la clase Jugador."""
 
+from abc import abstractmethod
 from random import choice
 from typing import TYPE_CHECKING, Callable, Optional
 
@@ -10,6 +11,7 @@ if TYPE_CHECKING:
     from laberinto import Laberinto
 
 
+@abstractmethod
 class Jugador:
     """Clase que representa al jugador en el laberinto."""
 
@@ -18,36 +20,60 @@ class Jugador:
     def __init__(
         self,
         laberinto,
-        estrategia_movimiento: Optional[
-            Callable[[list[MovimientosPosibles]], MovimientosPosibles]
-        ] = None,
     ):
         """
-        Inicializa el jugador con referencia al laberinto y una estrategia de movimiento.
+        Inicializa el jugador con referencia al laberinto.
 
         Args:
             laberinto: Instancia del laberinto.
-            estrategia_movimiento: Función que decide el siguiente movimiento. Debe recibir una lista de MovimientosPosibles y devolver un MovimientosPosibles.
         """
         self.laberinto = laberinto
-        self.estrategia_movimiento = estrategia_movimiento or self._eleccion_movimiento_random
 
-    def tick(self):
-        """Elige y retorna un movimiento válido para el jugador usando la estrategia."""
+    def tick(self) -> MovimientosPosibles:
+        """Elige y retorna un movimiento válido para el jugador."""
         adyacentes = self.laberinto.casillas_adyacentes()
+
         movimientos_validos = [
             mov
             for mov, casilla in adyacentes.items()
             if casilla
             in [CasillaLaberinto.CAMINO, CasillaLaberinto.META_FALSA, CasillaLaberinto.META_REAL]
         ]
-        return self.estrategia_movimiento(movimientos_validos)
 
-    def _eleccion_movimiento_random(
+        if not movimientos_validos:
+            return MovimientosPosibles.NO_MOVERSE
+
+        return self._eleccion_moverse(movimientos_validos)
+
+    @abstractmethod
+    def _eleccion_moverse(
+        self,
+        movimientos_validos: list[MovimientosPosibles],
+    ) -> MovimientosPosibles:
+        """Método abstracto que debe ser implementado por las subclases."""
+        pass
+
+
+class JugadorRandom(Jugador):
+    """Clase que representa un jugador que se mueve de forma aleatoria."""
+
+    def _eleccion_moverse(
         self, movimientos_validos: list[MovimientosPosibles]
     ) -> MovimientosPosibles:
-        """Elige uno de los movimientos validos de forma random."""
-        movimiento_elegido = MovimientosPosibles.NO_MOVERSE
-        if movimientos_validos:
-            movimiento_elegido = choice(movimientos_validos)
-        return movimiento_elegido
+        """Elige un movimiento aleatorio entre los movimientos válidos."""
+
+        return choice(movimientos_validos)
+
+
+class JugadorGreedy(Jugador):
+    def _eleccion_moverse(
+        self, movimientos_validos: list[MovimientosPosibles]
+    ) -> MovimientosPosibles:
+        pass
+
+
+class JugadorGenetico(Jugador):
+    def _eleccion_moverse(
+        self, movimientos_validos: list[MovimientosPosibles]
+    ) -> MovimientosPosibles:
+        pass

@@ -3,8 +3,9 @@
 from random import randint, random, sample
 
 from casilla_laberinto import CasillaLaberinto
-from jugador import Jugador
+from jugador import Jugador, JugadorGenetico, JugadorGreedy, JugadorRandom
 from movimientos import MovimientosPosibles
+from tipo_jugador import TipoJugador
 
 
 class Laberinto:
@@ -33,6 +34,7 @@ class Laberinto:
         prob_murallas: float = 0.2,
         prob_mover_murallas: float = 0.3,
         n_metas: int = 3,
+        tipo_jugador: TipoJugador = TipoJugador.RANDOM,
     ):
         """Inicializa el laberinto con sus dimensiones y probabilidades.
 
@@ -42,7 +44,17 @@ class Laberinto:
             prob_mover_murallas (float): Probabilidad de mover cada muralla.
             n_metas (int): Número de metas en el laberinto.
         """
-        self.jugador = Jugador(self)
+
+        match tipo_jugador:
+            case TipoJugador.RANDOM:
+                self.jugador = JugadorRandom(self)
+            case TipoJugador.GREEDY:
+                self.jugador = JugadorGreedy(self)
+            case TipoJugador.GENETICO:
+                self.jugador = JugadorGenetico(self)
+            case _:
+                raise ValueError(f"Tipo de jugador no reconocido: {tipo_jugador}")
+
         self.ticks_transcurridos = 0
 
         self.dimenciones = dimenciones
