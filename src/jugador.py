@@ -1,6 +1,6 @@
 """Módulo que define la clase Jugador."""
 
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from random import choice
 from typing import TYPE_CHECKING
 
@@ -11,8 +11,7 @@ if TYPE_CHECKING:
     from laberinto import Laberinto
 
 
-@abstractmethod
-class Jugador:
+class Jugador(ABC):
     """Clase que representa al jugador en el laberinto."""
 
     laberinto: "Laberinto"
