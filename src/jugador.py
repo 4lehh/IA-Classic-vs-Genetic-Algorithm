@@ -2,7 +2,7 @@
 
 from abc import abstractmethod
 from random import choice
-from typing import TYPE_CHECKING, Callable, Optional
+from typing import TYPE_CHECKING
 
 from casilla_laberinto import CasillaLaberinto
 from movimientos import MovimientosPosibles
@@ -69,11 +69,15 @@ class JugadorGreedy(Jugador):
     def _eleccion_moverse(
         self, movimientos_validos: list[MovimientosPosibles]
     ) -> MovimientosPosibles:
-        pass
+
+        ### FALTA IMPLEMENTAR, ESTO ES PARA QUE NO DE ERROR DE TIPADO
+        return MovimientosPosibles.NO_MOVERSE
 
 
 class JugadorGenetico(Jugador):
     def _eleccion_moverse(
         self, movimientos_validos: list[MovimientosPosibles]
     ) -> MovimientosPosibles:
-        pass
+
+        ### FALTA IMPLEMENTAR, ESTO ES PARA QUE NO DE ERROR DE TIPADO
+        return MovimientosPosibles.NO_MOVERSE
