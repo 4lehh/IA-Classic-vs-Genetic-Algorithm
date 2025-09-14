@@ -5,16 +5,27 @@ import os
 from jugador import JugadorQlearning, JugadorRandom
 from laberinto import Laberinto
 
-SALIR = True
-CONTINUAR = False
+SALIR = 1
+CONTINUAR = 0
+AUTO = 2
+
+LIMITE_DE_TICKS_DE_SIMULACION = 10000
 
 
-def manejar_opcion_salida_espera() -> bool:
+def manejar_opcion_salida_espera() -> int:
     """Maneja la opción de salida o espera del usuario en el menú principal."""
-    opcion = input("Presiona Enter para continuar, 'q' o 'exit' para salir:\n> ").strip().lower()
+    opcion = (
+        input(
+            "Presiona Enter para continuar\n'auto' para que avanze automaticmente el juego\n'q' o 'exit' para salir:\n> "
+        )
+        .strip()
+        .lower()
+    )
     if opcion in ["q", "exit"]:
         print("Saliendo...")
         return SALIR
+    if opcion == "auto":
+        return AUTO
     return CONTINUAR
 
 
@@ -51,11 +62,22 @@ def simular_laberinto(laberinto: Laberinto):
     Args:
         laberinto: Instancia del laberinto a simular.
     """
+
+    preguntar = True
+    contador = 0
     try:
         while True:
-            mover_murallas_imprimir_laberinto(laberinto=laberinto)
-            if manejar_opcion_salida_espera() == SALIR:
+            if contador >= LIMITE_DE_TICKS_DE_SIMULACION:
+                print("Se supero el limite de tiempo de simulacion.")
                 break
+
+            mover_murallas_imprimir_laberinto(laberinto=laberinto)
+            if preguntar:
+                opcion = manejar_opcion_salida_espera()
+                if opcion == SALIR:
+                    break
+                if opcion == AUTO:
+                    preguntar = False
 
             mover_jugador_imprimir_laberinto(laberinto=laberinto)
 
@@ -64,8 +86,14 @@ def simular_laberinto(laberinto: Laberinto):
                 print(f"Se demoro {laberinto.ticks_transcurridos} ticks.")
                 exit(0)
 
-            if manejar_opcion_salida_espera() == SALIR:
-                break
+            if preguntar:
+                opcion = manejar_opcion_salida_espera()
+                if opcion == SALIR:
+                    break
+                if opcion == AUTO:
+                    preguntar = False
+
+            contador += 1
 
     except KeyboardInterrupt:
         print("\nInterrumpido por el usuario.")
