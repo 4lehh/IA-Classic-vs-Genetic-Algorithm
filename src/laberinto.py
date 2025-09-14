@@ -1,10 +1,10 @@
 """Módulo que define la clase Laberinto y su lógica de funcionamiento."""
 
 from random import randint, random, sample
-from typing import Type
+from typing import Optional, Type
 
 from casilla_laberinto import CasillaLaberinto
-from jugador import Jugador, JugadorGenetico, JugadorGreedy, JugadorRandom
+from jugador import Jugador, JugadorRandom
 from movimientos import MovimientosPosibles
 
 
@@ -35,6 +35,7 @@ class Laberinto:
         prob_mover_murallas: float = 0.3,
         n_metas: int = 3,
         clase_jugador: Type[Jugador] = JugadorRandom,
+        jugar_instanciado: Optional[Jugador] = None,
     ):
         """Inicializa el laberinto con sus dimensiones y probabilidades.
 
@@ -45,10 +46,6 @@ class Laberinto:
             n_metas (int): Número de metas en el laberinto.
             clase_jugador (Type[Jugador]): Clase del jugador a instanciar.
         """
-
-        self.jugador = clase_jugador(self)
-
-        self.ticks_transcurridos = 0
 
         self.dimenciones = dimenciones
         self.prob_murallas = prob_murallas
@@ -61,11 +58,20 @@ class Laberinto:
 
         self.tipo_anterior_casilla_actual = None
 
+        if jugar_instanciado is not None:
+            self.jugador = jugar_instanciado
+        else:
+            self.jugador = clase_jugador(self)
+
+        self.ticks_transcurridos = 0
+
         try:
             self._crear_laberinto()
         except Exception as e:
             print(f"Error al crear el laberinto: {e}")
             raise
+
+        print(f"Laberinto creado con Jugador de Tipo {self.jugador.__class__.__name__}.")
 
     def _crear_laberinto(self):
         filas, columnas = self.dimenciones

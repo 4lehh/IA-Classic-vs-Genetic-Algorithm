@@ -2,6 +2,7 @@
 
 import os
 
+from jugador import JugadorQlearning, JugadorRandom
 from laberinto import Laberinto
 
 SALIR = True
@@ -74,7 +75,11 @@ def simular_laberinto(laberinto: Laberinto):
 def main():
     """Función principal que ejecuta la simulación del laberinto."""
     laberinto = Laberinto(
-        dimenciones=(20, 20), prob_murallas=0.3, prob_mover_murallas=0.01, n_metas=3
+        dimenciones=(20, 20),
+        prob_murallas=0.3,
+        prob_mover_murallas=0.01,
+        n_metas=3,
+        clase_jugador=JugadorQlearning,
     )
     simular_laberinto(laberinto)
 
