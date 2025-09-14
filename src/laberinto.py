@@ -71,7 +71,8 @@ class Laberinto:
             print(f"Error al crear el laberinto: {e}")
             raise
 
-        print(f"Laberinto creado con Jugador de Tipo {self.jugador.__class__.__name__}.")
+        if jugar_instanciado is None:
+            print(f"Laberinto creado con Jugador de Tipo {self.jugador.__class__.__name__}.")
 
     def _crear_laberinto(self):
         filas, columnas = self.dimenciones
