@@ -122,6 +122,7 @@ class JugadorQlearning(Jugador):
                 self.Q[(i, j)] = {mov: 0.0 for mov in MovimientosPosibles}
 
         self._entrenar()
+        self.mostrar_mapas_calor_Q()
 
     def _eleccion_moverse(self, movimientos_validos) -> MovimientosPosibles:
         pos_actual = self.laberinto.jugador_pos
@@ -198,13 +199,13 @@ class JugadorQlearning(Jugador):
         if casilla == CasillaLaberinto.META_REAL:
             reward += 50
         elif casilla == CasillaLaberinto.META_FALSA:
-            reward -= 50
+            reward -= 10
         # Verificar si una posición ya fue visitada para penalizar los ciclos o regresiones
         elif pos_nueva in self.posiciones_visitadas:
-            reward -= 2
+            reward -= 1
         return reward
 
-    def _entrenar(self, n_episodios: int = 10000, max_steps: Optional[int] = None):
+    def _entrenar(self, n_episodios: int = 100000, max_steps: Optional[int] = None):
         from laberinto import Laberinto  # Import local para evitar ciclo
 
         # Cambio self.laberinto para que al jecutar tick en el labernto de entrenamiento el jugador use al de entrenamiento
@@ -245,3 +246,26 @@ class JugadorQlearning(Jugador):
         # Reinicio las variables a su estado anterior del entrenamiento
         self.laberinto = laberinto_original
         self.epsilon = epsilon
+
+    def mostrar_mapas_calor_Q(self):
+        """
+        Muestra un mapa de calor para cada acción en la matriz Q.
+        """
+        import matplotlib.pyplot as plt
+        import numpy as np
+
+        acciones = list(MovimientosPosibles)
+        filas, columnas = self.laberinto.dimenciones
+        fig, axs = plt.subplots(1, len(acciones), figsize=(4 * len(acciones), 4))
+        for idx, accion in enumerate(acciones):
+            matriz_q = np.zeros((filas, columnas))
+            for i in range(filas):
+                for j in range(columnas):
+                    matriz_q[i, j] = self.Q[(i, j)][accion]
+            ax = axs[idx] if len(acciones) > 1 else axs
+            im = ax.imshow(matriz_q, cmap="hot", interpolation="nearest")
+            ax.set_title(f"Acción: {accion.name}")
+            plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
+        plt.suptitle("Mapas de calor Q por acción")
+        plt.tight_layout()
+        plt.savefig("asd.png")  # Esto porque mi terminal no esta con el modo interactivo activado

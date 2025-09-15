@@ -2,7 +2,7 @@
 name = "IA-Classic-vs-Genetic-Algorithm"
 version = "0.1.0"
 description = "Default template for PDM package"
-dependencies = ["black>=25.1.0", "isort>=6.0.1", "pydocstyle>=6.3.0"]
+dependencies = ["black>=25.1.0", "isort>=6.0.1", "pydocstyle>=6.3.0", "matplotlib>=3.10.6"]
 requires-python = "==3.12.*"
 readme = "README.md"
 license = {text = "MIT"}
