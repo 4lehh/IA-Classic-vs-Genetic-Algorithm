@@ -32,7 +32,12 @@ class Jugador(ABC):
         self.laberinto = laberinto
 
     def tick(self) -> MovimientosPosibles:
-        """Elige y retorna un movimiento válido para el jugador."""
+        """
+        Calcula y retorna el movimiento que debe realizar el jugador en el laberinto.
+
+        Returns:
+            MovimientosPosibles: Movimiento elegido por el jugador.
+        """
         adyacentes = self.laberinto.casillas_adyacentes()
 
         movimientos_validos = [
@@ -62,8 +67,15 @@ class JugadorRandom(Jugador):
     def _eleccion_moverse(
         self, movimientos_validos: list[MovimientosPosibles]
     ) -> MovimientosPosibles:
-        """Elige un movimiento aleatorio entre los movimientos válidos."""
+        """
+        Elige un movimiento aleatorio entre los movimientos válidos.
 
+        Args:
+            movimientos_validos (list[MovimientosPosibles]): Movimientos posibles para el jugador.
+
+        Returns:
+            MovimientosPosibles: Movimiento elegido aleatoriamente.
+        """
         return choice(movimientos_validos)
 
 
@@ -71,7 +83,15 @@ class JugadorGreedy(Jugador):
     def _eleccion_moverse(
         self, movimientos_validos: list[MovimientosPosibles]
     ) -> MovimientosPosibles:
+        """
+        Elige el movimiento más prometedor según una heurística (no implementado).
 
+        Args:
+            movimientos_validos (list[MovimientosPosibles]): Movimientos posibles para el jugador.
+
+        Returns:
+            MovimientosPosibles: Movimiento elegido por la heurística.
+        """
         raise NotImplementedError("JugadorGreedy aun no esta implementado.")
 
 
@@ -79,7 +99,15 @@ class JugadorGenetico(Jugador):
     def _eleccion_moverse(
         self, movimientos_validos: list[MovimientosPosibles]
     ) -> MovimientosPosibles:
+        """
+        Elige el movimiento usando un algoritmo genético (no implementado).
 
+        Args:
+            movimientos_validos (list[MovimientosPosibles]): Movimientos posibles para el jugador.
+
+        Returns:
+            MovimientosPosibles: Movimiento elegido por el algoritmo genético.
+        """
         raise NotImplementedError("JugadorGenetico aun no esta implementado.")
 
 
@@ -116,6 +144,15 @@ class JugadorQlearning(Jugador):
         self.mostrar_mapas_calor_Q()
 
     def _eleccion_moverse(self, movimientos_validos) -> MovimientosPosibles:
+        """
+        Elige el movimiento usando la política Q-learning entrenada.
+
+        Args:
+            movimientos_validos (list[MovimientosPosibles]): Movimientos posibles para el jugador.
+
+        Returns:
+            MovimientosPosibles: Movimiento elegido por la política Q-learning.
+        """
         pos_actual = self.laberinto.jugador_pos
 
         # Explorar o explotar
@@ -167,6 +204,17 @@ class JugadorQlearning(Jugador):
         return mov_elegido
 
     def _calcular_recompensa(self, pos_actual: Coordenada, pos_nueva: Coordenada, casilla):
+        """
+        Calcula la recompensa obtenida al moverse de una posición a otra en el laberinto.
+
+        Args:
+            pos_actual (Coordenada): Posición actual del jugador.
+            pos_nueva (Coordenada): Nueva posición tras el movimiento.
+            casilla (CasillaLaberinto): Tipo de casilla en la nueva posición.
+
+        Returns:
+            float: Recompensa calculada.
+        """
         # Distancia Manhattan a la meta más cercana
         metas_no_visitadas = [
             pos for pos in self.laberinto.metas_pos if pos not in self.metas_visitadas
@@ -192,6 +240,13 @@ class JugadorQlearning(Jugador):
         return reward
 
     def _entrenar(self, n_episodios: int = 10000, max_steps: Optional[int] = None):
+        """
+        Entrena la política Q-learning mediante simulaciones en laberintos generados.
+
+        Args:
+            n_episodios (int): Número de episodios de entrenamiento.
+            max_steps (Optional[int]): Máximo de pasos por episodio.
+        """
         from laberinto import Laberinto  # Import local para evitar ciclo
 
         # Cambio self.laberinto para que al ejecutar tick en el laberinto de entrenamiento el jugador use al de entrenamiento
