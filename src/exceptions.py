@@ -15,3 +15,7 @@ class MetaNoEncontradaError(Exception):
 
 class CreacionLaberintoError(Exception):
     """Se lanza cuando falla la creacion del Laberinto."""
+
+
+class CoordenadaFueraDeLimiteDelLaberintoError(Exception):
+    """Se lanza cuando se consulta por una coordenada que no esta dentro del laberinto."""

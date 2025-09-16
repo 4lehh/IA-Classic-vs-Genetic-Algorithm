@@ -57,7 +57,7 @@ class JugadorGreedy(Jugador):
             movimiento_elegido = choice(mejor_movimiento)
 
         pos_futura = pos_actual + movimiento_elegido
-        if self.laberinto.laberinto[pos_futura.x][pos_futura.y] == CasillaLaberinto.META_FALSA:
+        if self.laberinto.get_casilla(pos_futura) == CasillaLaberinto.META_FALSA:
             self.metas_visitadas.append(pos_futura)
             self.meta_objetivo = None
 

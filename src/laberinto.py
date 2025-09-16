@@ -3,7 +3,11 @@
 from random import randint, random, sample
 from typing import Optional, Type
 
-from exceptions import CreacionLaberintoError, MovimientoInvalidoError
+from exceptions import (
+    CoordenadaFueraDeLimiteDelLaberintoError,
+    CreacionLaberintoError,
+    MovimientoInvalidoError,
+)
 from jugador import Jugador, JugadorRandom
 from models import CasillaLaberinto, Coordenada, MovimientosPosibles
 
@@ -99,7 +103,7 @@ class Laberinto:
             )
 
         self.jugador_pos = caminos_libres.pop(randint(0, len(caminos_libres) - 1))
-        self.laberinto[self.jugador_pos.x][self.jugador_pos.y] = CasillaLaberinto.JUGADOR
+        self.set_casilla(self.jugador_pos, CasillaLaberinto.JUGADOR)
 
         # Seleccionar posiciones de metas
         if len(caminos_libres) < self.n_metas:
@@ -113,10 +117,10 @@ class Laberinto:
 
         for id, meta in enumerate(metas):
             if id == real_id:
-                self.laberinto[meta.x][meta.y] = CasillaLaberinto.META_REAL
+                self.set_casilla(meta, CasillaLaberinto.META_REAL)
                 self.meta_real_pos = meta
             else:
-                self.laberinto[meta.x][meta.y] = CasillaLaberinto.META_FALSA
+                self.set_casilla(meta, CasillaLaberinto.META_FALSA)
             self.metas_pos.append(meta)
 
     def coordenada_en_laberinto(self, coordenada: Coordenada) -> bool:
@@ -147,14 +151,13 @@ class Laberinto:
 
                 if (
                     self.coordenada_en_laberinto(nueva_posicion)
-                    and self.laberinto[nueva_posicion.x][nueva_posicion.y]
-                    == CasillaLaberinto.CAMINO
+                    and self.get_casilla(nueva_posicion) == CasillaLaberinto.CAMINO
                     and nueva_posicion not in nuevas_murallas
                 ):
                     # Actualiza la casilla anterior a CAMINO
-                    self.laberinto[muralla.x][muralla.y] = CasillaLaberinto.CAMINO
+                    self.set_casilla(muralla, CasillaLaberinto.CAMINO)
                     # Mueve la muralla
-                    self.laberinto[nueva_posicion.x][nueva_posicion.y] = CasillaLaberinto.MURALLA
+                    self.set_casilla(nueva_posicion, CasillaLaberinto.MURALLA)
                     nueva_pos = nueva_posicion
             nuevas_murallas.add(nueva_pos)
         self.murallas_pos = list(nuevas_murallas)
@@ -182,16 +185,14 @@ class Laberinto:
 
         # Actualiza la casilla anterior
         if self.tipo_anterior_casilla_actual is None:
-            self.laberinto[self.jugador_pos.x][self.jugador_pos.y] = CasillaLaberinto.CAMINO
+            self.set_casilla(self.jugador_pos, CasillaLaberinto.CAMINO)
         else:
-            self.laberinto[self.jugador_pos.x][
-                self.jugador_pos.y
-            ] = self.tipo_anterior_casilla_actual
+            self.set_casilla(self.jugador_pos, self.tipo_anterior_casilla_actual)
 
         # Actualiza la posición del jugador
-        self.tipo_anterior_casilla_actual = self.laberinto[nueva_posicion.x][nueva_posicion.y]
+        self.tipo_anterior_casilla_actual = self.get_casilla(nueva_posicion)
         self.jugador_pos = nueva_posicion
-        self.laberinto[nueva_posicion.x][nueva_posicion.y] = CasillaLaberinto.JUGADOR
+        self.set_casilla(nueva_posicion, CasillaLaberinto.JUGADOR)
 
     def casillas_adyacentes(
         self, posicion: Optional[Coordenada] = None
@@ -204,8 +205,47 @@ class Laberinto:
         for mov in MovimientosPosibles:
             nueva_posicion = posicion + mov
             if self.coordenada_en_laberinto(nueva_posicion):
-                adyacentes[mov] = self.laberinto[nueva_posicion.x][nueva_posicion.y]
+                adyacentes[mov] = self.get_casilla(nueva_posicion)
         return adyacentes
+
+    def get_casilla(self, coordenada: Coordenada) -> CasillaLaberinto:
+        """
+        Devuelve la casilla en la coordenada dada.
+
+        Args:
+            coordenada (Coordenada): Coordenada a consultar.
+
+        Returns:
+            CasillaLaberinto: Casilla en la coordenada dada.
+
+        Raises:
+            CoordenadaFueraDeLimiteDelLaberintoError: Si la coordenada está fuera de los límites del laberinto.
+        """
+        if not self.coordenada_en_laberinto(coordenada):
+            raise CoordenadaFueraDeLimiteDelLaberintoError(
+                f"La coordenada {coordenada} está fuera de los límites del laberinto."
+            )
+        return self.laberinto[coordenada.x][coordenada.y]
+
+    def set_casilla(self, coordenada: Coordenada, tipo_casilla: CasillaLaberinto) -> None:
+        """
+        Asigna el tipo de casilla en la coordenada dada.
+
+        Args:
+            coordenada (Coordenada): Coordenada donde asignar el tipo de casilla.
+            tipo_casilla (CasillaLaberinto): Tipo de casilla a asignar.
+
+        Returns:
+            None
+
+        Raises:
+            CoordenadaFueraDeLimiteDelLaberintoError: Si la coordenada está fuera de los límites del laberinto.
+        """
+        if not self.coordenada_en_laberinto(coordenada):
+            raise CoordenadaFueraDeLimiteDelLaberintoError(
+                f"La coordenada {coordenada} está fuera de los límites del laberinto."
+            )
+        self.laberinto[coordenada.x][coordenada.y] = tipo_casilla
 
     def jugador_gano(self) -> bool:
         """
@@ -218,7 +258,7 @@ class Laberinto:
             return True
         return False
 
-    def imprimir(self):
+    def imprimir(self) -> None:
         """Imprime el laberinto en formato markdown y muestra la leyenda de símbolos de forma dinámica."""
         filas_md = []
         for fila in self.laberinto:
