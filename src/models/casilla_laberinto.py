@@ -1,6 +1,6 @@
 """Módulo que define la clase CasillaLaberinto."""
 
-from enum import Enum, auto
+from enum import Enum
 
 
 class CasillaLaberinto(Enum):

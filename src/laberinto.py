@@ -3,11 +3,9 @@
 from random import randint, random, sample
 from typing import Optional, Type
 
-from casilla_laberinto import CasillaLaberinto
-from coordenada import Coordenada
 from exceptions import CreacionLaberintoError, MovimientoInvalidoError
 from jugador import Jugador, JugadorRandom
-from movimientos import MovimientosPosibles
+from models import CasillaLaberinto, Coordenada, MovimientosPosibles
 
 
 class Laberinto:

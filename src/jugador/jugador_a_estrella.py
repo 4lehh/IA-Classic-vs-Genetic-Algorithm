@@ -1,9 +1,8 @@
 from collections import deque
 from random import choice
 
-from coordenada import Coordenada
 from jugador import Jugador
-from movimientos import MovimientosPosibles
+from models import Coordenada, MovimientosPosibles
 
 
 class JugadorAEstrella(Jugador):

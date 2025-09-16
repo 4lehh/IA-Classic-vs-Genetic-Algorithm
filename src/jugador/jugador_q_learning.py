@@ -2,11 +2,9 @@ from collections import deque
 from random import choice, random
 from typing import Optional
 
-from casilla_laberinto import CasillaLaberinto
-from coordenada import Coordenada
 from exceptions import MetaNoEncontradaError
 from jugador import Jugador
-from movimientos import MovimientosPosibles
+from models import CasillaLaberinto, Coordenada, MovimientosPosibles
 
 
 class JugadorQlearning(Jugador):

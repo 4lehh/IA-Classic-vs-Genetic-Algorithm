@@ -3,8 +3,7 @@
 from abc import ABC, abstractmethod
 from typing import TYPE_CHECKING
 
-from casilla_laberinto import CasillaLaberinto
-from movimientos import MovimientosPosibles
+from models import CasillaLaberinto, MovimientosPosibles
 
 if TYPE_CHECKING:
     from laberinto import Laberinto

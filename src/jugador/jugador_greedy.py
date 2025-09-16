@@ -1,5 +1,5 @@
 from jugador import Jugador
-from movimientos import MovimientosPosibles
+from models import MovimientosPosibles
 
 
 class JugadorGreedy(Jugador):
