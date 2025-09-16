@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional
 
 from casilla_laberinto import CasillaLaberinto
 from coordenada import Coordenada
-from exceptions import JugadorError, MetaNoEncontradaError, NotImplementedError
+from exceptions import JugadorError, MetaNoEncontradaError
 from movimientos import MovimientosPosibles
 
 if TYPE_CHECKING:

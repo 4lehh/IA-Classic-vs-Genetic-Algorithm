@@ -5,7 +5,6 @@ from exceptions import (
     CreacionLaberintoError,
     MetaNoEncontradaError,
     MovimientoInvalidoError,
-    NotImplementedError,
 )
 from laberinto import Laberinto
 
