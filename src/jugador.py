@@ -269,3 +269,91 @@ class JugadorQlearning(Jugador):
         plt.suptitle("Mapas de calor Q por acción")
         plt.tight_layout()
         plt.savefig("asd.png")  # Esto porque mi terminal no esta con el modo interactivo activado
+
+
+class JugadorAEstrella(Jugador):
+    """
+    Jugador que utiliza el algoritmo A* para encontrar la ruta óptima hacia la meta.
+    La heurística utilizada es la distancia Manhattan.
+    Además, se penalizan las posiciones recientemente visitadas para evitar ciclos y encontrar rutas más eficientes.
+    """
+
+    costo_acumulado: dict[tuple[int, int], int]
+    visitados_recientes: deque[tuple[int, int]]
+    metas_visitadas: list[tuple[int, int]]
+
+    def __init__(self, laberinto):
+        super().__init__(laberinto)
+        self.costo_acumulado = {}
+        self.visitados_recientes = deque(maxlen=10)
+        self.metas_visitadas = []
+
+    def costo_funcion_f(self, g_nuevo: int, nueva_posicion: tuple, posicion_meta: tuple) -> int:
+        # Distancia Manhattan a la meta
+        h = abs(posicion_meta[0] - nueva_posicion[0]) + abs(posicion_meta[1] - nueva_posicion[1])
+        return g_nuevo + h
+
+    def _eleccion_moverse(self, movimientos_validos):
+
+        # Diccionario de los costos acumulados para cada movimiento
+        posicion_jugador = self.laberinto.jugador_pos
+
+        # Si no he pasado por esta posicion, la inicializo
+        if posicion_jugador not in self.costo_acumulado:
+            self.costo_acumulado[posicion_jugador] = 0
+
+        # Costo de movimiento actual
+        g_actual = self.costo_acumulado[posicion_jugador]
+
+        # Recordar: F = G + H donde G es el costo acumulado y H es la heurística (distancia a la meta usando distancia Manhattan)
+        mejor_mov = None
+        mejor_f = float("inf")
+        metas_disponibles = [
+            pos for pos in self.laberinto.metas_pos if pos not in self.metas_visitadas
+        ]
+        posicion_meta = choice(metas_disponibles)  # Elegir una meta disponible al azar
+
+        # Recorremos los movimientos validos y calculamos su F
+        for mov in movimientos_validos:
+            # Posicion nueva si se realiza el movimiento
+            nueva_posicion = (
+                mov.value[0] + posicion_jugador[0],
+                mov.value[1] + posicion_jugador[1],
+            )
+
+            # Coste de movimiento (1 por defecto)
+            g_nuevo = g_actual + 1
+
+            # Obtener el valor de la funcion F
+            resultado_funcion_f = self.costo_funcion_f(g_nuevo, nueva_posicion, posicion_meta)
+
+            # Penalizacion por repeticion de posiciones recientes (¿Razón? tiende a caer en bucles antonio)
+            if nueva_posicion in self.visitados_recientes:
+                resultado_funcion_f += 5
+
+            # Elegir al mejor F
+            if resultado_funcion_f < mejor_f:
+                mejor_f = resultado_funcion_f
+                mejor_mov = mov
+
+        # Puede que no haya un movimiento válido
+        if mejor_mov is None:
+            return choice(movimientos_validos)
+
+        # Actualizo las variables de estado
+        nueva_posicion = (
+            posicion_jugador[0] + mejor_mov.value[0],
+            posicion_jugador[1] + mejor_mov.value[1],
+        )
+
+        # Guardamos ultimas posiciones para evitar ciclos
+        self.visitados_recientes.append(nueva_posicion)
+
+        # Actualizo el costo acumulado para la nueva posicion
+        self.costo_acumulado[nueva_posicion] = g_actual + 1
+
+        # Si llegué a una meta la marco para no luego no tratar de ir hacia ella
+        if posicion_meta == nueva_posicion:
+            self.metas_visitadas.append(posicion_meta)
+
+        return mejor_mov

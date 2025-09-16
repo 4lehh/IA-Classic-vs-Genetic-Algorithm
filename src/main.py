@@ -2,7 +2,7 @@
 
 import os
 
-from jugador import JugadorQlearning, JugadorRandom
+from jugador import JugadorAEstrella, JugadorQlearning, JugadorRandom
 from laberinto import Laberinto
 
 SALIR = 1
@@ -16,7 +16,7 @@ def manejar_opcion_salida_espera() -> int:
     """Maneja la opción de salida o espera del usuario en el menú principal."""
     opcion = (
         input(
-            "Presiona Enter para continuar\n'auto' para que avanze automaticmente el juego\n'q' o 'exit' para salir:\n> "
+            "Presiona Enter para continuar\n'a' o 'auto' para que avanze automaticmente el juego\n'q' o 'exit' para salir:\n> "
         )
         .strip()
         .lower()
@@ -24,7 +24,7 @@ def manejar_opcion_salida_espera() -> int:
     if opcion in ["q", "exit"]:
         print("Saliendo...")
         return SALIR
-    if opcion == "auto":
+    if opcion in ["auto", "a"]:
         return AUTO
     return CONTINUAR
 
@@ -104,10 +104,10 @@ def main():
     """Función principal que ejecuta la simulación del laberinto."""
     laberinto = Laberinto(
         dimenciones=(20, 20),
-        prob_murallas=0.3,
+        prob_murallas=0.2,
         prob_mover_murallas=0.01,
         n_metas=3,
-        clase_jugador=JugadorQlearning,
+        clase_jugador=JugadorAEstrella,
     )
     simular_laberinto(laberinto)
 
