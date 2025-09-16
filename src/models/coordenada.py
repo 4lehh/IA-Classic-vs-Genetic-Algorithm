@@ -21,15 +21,14 @@ class Coordenada:
     def __iter__(self):
         """
         Permite iterar sobre la instancia para obtener sus componentes (x, y).
+
         Esto habilita la descompresión: x, y = coordenada
         """
         yield self.x
         yield self.y
 
     def __add__(self, other: "Union[Coordenada, MovimientosPosibles, tuple[int, int]]"):
-        """
-        Suma la coordenada actual con otra Coordenada, MovimientosPosibles o una tupla de dos enteros.
-        """
+        """Suma la coordenada actual con otra Coordenada, MovimientosPosibles o una tupla de dos enteros."""
         if isinstance(other, Coordenada):
             return Coordenada(self.x + other.x, self.y + other.y)
         elif isinstance(other, MovimientosPosibles):
@@ -44,9 +43,7 @@ class Coordenada:
             )
 
     def __sub__(self, other: "Union[Coordenada, MovimientosPosibles, tuple[int, int]]"):
-        """
-        Resta la coordenada actual con otra Coordenada, MovimientosPosibles o una tupla de dos enteros.
-        """
+        """Resta la coordenada actual con otra Coordenada, MovimientosPosibles o una tupla de dos enteros."""
         if isinstance(other, Coordenada):
             return Coordenada(self.x - other.x, self.y - other.y)
         elif isinstance(other, MovimientosPosibles):
@@ -61,13 +58,9 @@ class Coordenada:
             )
 
     def distancia_euclidiana(self, otra: "Coordenada") -> float:
-        """
-        Calcula la distancia euclidiana entre esta coordenada y otra.
-        """
+        """Calcula la distancia euclidiana entre esta coordenada y otra."""
         return ((self.x - otra.x) ** 2 + (self.y - otra.y) ** 2) ** 0.5
 
     def distancia_manhatan(self, otra: "Coordenada") -> int:
-        """
-        Calcula la distancia de Manhattan entre esta coordenada y otra.
-        """
+        """Calcula la distancia de Manhattan entre esta coordenada y otra."""
         return abs(self.x - otra.x) + abs(self.y - otra.y)

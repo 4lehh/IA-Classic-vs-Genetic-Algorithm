@@ -1,3 +1,5 @@
+"""Paquete que contiene a las definiciones de los distintos tipos de jugadores que recorreran el laberinto."""
+
 from .jugador import Jugador
 from .jugador_a_estrella import JugadorAEstrella
 from .jugador_genetico import JugadorGenetico

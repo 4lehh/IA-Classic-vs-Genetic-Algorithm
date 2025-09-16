@@ -1,3 +1,5 @@
+"""Módulo que contiene la lógica de simulación del laberinto y control de flujo de usuario."""
+
 import os
 from enum import Enum, auto
 
@@ -12,6 +14,8 @@ LIMITE_DE_TICKS_DE_SIMULACION = 10000
 
 
 class EstadoSimulacion(Enum):
+    """Enum que representa los posibles estados de la simulación."""
+
     SALIR = auto()
     CONTINUAR = auto()
     AUTO = auto()

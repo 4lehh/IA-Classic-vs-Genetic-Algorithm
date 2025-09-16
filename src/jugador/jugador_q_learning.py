@@ -1,3 +1,5 @@
+"""Módulo que define el jugador basado en Q-learning para el laberinto."""
+
 from collections import deque
 from random import choice, random
 from typing import Optional
@@ -9,8 +11,9 @@ from models import CasillaLaberinto, Coordenada, MovimientosPosibles
 
 class JugadorQlearning(Jugador):
     """
-    Jugador que aprende a moverse en el laberinto usando Q-learning,
-    con recompensas basadas en acercarse a metas posibles y alcanzar la meta real.
+    Jugador que aprende a moverse en el laberinto usando Q-learning.
+
+    Se basa en recompensas por acercarse a metas posibles y alcanzar la meta real, y penalizaciones por repetir caminos o alejarse de las metas.
     """
 
     alpha: float  # tasa de aprendizaje
@@ -23,6 +26,7 @@ class JugadorQlearning(Jugador):
     posiciones_visitadas: deque[Coordenada]
 
     def __init__(self, laberinto, alpha=0.1, gamma=0.9, epsilon=0.2):
+        """Inicializa el jugador Q-learning con parámetros de aprendizaje y estructuras internas."""
         super().__init__(laberinto)
         self.alpha = alpha
         self.gamma = gamma
@@ -185,9 +189,7 @@ class JugadorQlearning(Jugador):
         self.epsilon = epsilon
 
     def mostrar_mapas_calor_Q(self):
-        """
-        Muestra un mapa de calor para cada acción en la matriz Q.
-        """
+        """Muestra un mapa de calor para cada acción en la matriz Q."""
         import matplotlib.pyplot as plt
         import numpy as np
 

@@ -1,3 +1,5 @@
+"""Módulo que define el jugador aleatorio para el laberinto."""
+
 from random import choice
 
 from jugador import Jugador

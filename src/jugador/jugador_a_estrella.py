@@ -1,3 +1,5 @@
+"""Módulo que define el jugador basado en el algoritmo A* para el laberinto."""
+
 from collections import deque
 from random import choice
 
@@ -8,6 +10,7 @@ from models import Coordenada, MovimientosPosibles
 class JugadorAEstrella(Jugador):
     """
     Jugador que utiliza el algoritmo A* para encontrar la ruta óptima hacia la meta.
+
     La heurística utilizada es la distancia Manhattan.
     Además, se penalizan las posiciones recientemente visitadas para evitar ciclos y encontrar rutas más eficientes.
     """
@@ -17,6 +20,7 @@ class JugadorAEstrella(Jugador):
     metas_visitadas: list[Coordenada]
 
     def __init__(self, laberinto):
+        """Inicializa el jugador A* con referencias y estructuras internas."""
         super().__init__(laberinto)
         self.costo_acumulado = {}
         self.visitados_recientes = deque(maxlen=10)

@@ -38,7 +38,8 @@ class Laberinto:
         clase_jugador: Type[Jugador] = JugadorRandom,
         jugar_instanciado: Optional[Jugador] = None,
     ):
-        """Inicializa el laberinto con sus dimensiones y probabilidades.
+        """
+        Inicializa el laberinto con sus dimensiones y probabilidades.
 
         Args:
             dimensiones (tuple[int, int]): Dimensiones del laberinto.
@@ -47,7 +48,6 @@ class Laberinto:
             n_metas (int): Número de metas en el laberinto.
             clase_jugador (Type[Jugador]): Clase del jugador a instanciar.
         """
-
         self.filas, self.columnas = dimensiones
         self.prob_murallas = prob_murallas
         self.prob_mover_murallas = prob_mover_murallas
@@ -120,6 +120,7 @@ class Laberinto:
             self.metas_pos.append(meta)
 
     def coordenada_en_laberinto(self, coordenada: Coordenada) -> bool:
+        """Verifica si una coordenada está dentro de los límites del laberinto."""
         if 0 <= coordenada.x < self.filas and 0 <= coordenada.y < self.columnas:
             return True
         return False
@@ -218,9 +219,7 @@ class Laberinto:
         return False
 
     def imprimir(self):
-        """
-        Imprime el laberinto en formato markdown y muestra la leyenda de símbolos de forma dinámica.
-        """
+        """Imprime el laberinto en formato markdown y muestra la leyenda de símbolos de forma dinámica."""
         filas_md = []
         for fila in self.laberinto:
             filas_md.append("".join(c.value for c in fila))
