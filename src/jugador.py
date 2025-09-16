@@ -139,7 +139,7 @@ class JugadorQlearning(Jugador):
             mov_elegido = choice(candidatos)
 
         # Simular nueva posición
-        nueva_posicion = pos_actual.desplazar(mov_elegido)
+        nueva_posicion = pos_actual + mov_elegido
 
         if not self.validar_movimiento(nueva_posicion):
             return MovimientosPosibles.NO_MOVERSE
@@ -313,7 +313,7 @@ class JugadorAEstrella(Jugador):
         # Recorremos los movimientos validos y calculamos su F
         for mov in movimientos_validos:
             # Posicion nueva si se realiza el movimiento
-            nueva_posicion = posicion_jugador.desplazar(mov)
+            nueva_posicion = posicion_jugador + mov
 
             # Coste de movimiento (1 por defecto)
             g_nuevo = g_actual + 1
@@ -335,7 +335,7 @@ class JugadorAEstrella(Jugador):
             return choice(movimientos_validos)
 
         # Actualizo las variables de estado
-        nueva_posicion = posicion_jugador.desplazar(mejor_mov)
+        nueva_posicion = posicion_jugador + mejor_mov
 
         # Guardamos ultimas posiciones para evitar ciclos
         self.visitados_recientes.append(nueva_posicion)

@@ -135,7 +135,7 @@ class Laberinto:
                     m for m in MovimientosPosibles if m != MovimientosPosibles.NO_MOVERSE
                 ]
                 mov = movimientos_muralla[randint(0, len(movimientos_muralla) - 1)]
-                nueva_posicion = muralla.desplazar(mov)
+                nueva_posicion = muralla + mov
                 # Verifica que la nueva posición esté dentro del laberinto y no colisione
                 if (
                     0 <= nueva_posicion.x < filas
@@ -162,7 +162,7 @@ class Laberinto:
             return
 
         # Calcular coordenadas nuevas
-        nueva_posicion = self.jugador_pos.desplazar(movimiento_jugador)
+        nueva_posicion = self.jugador_pos + movimiento_jugador
 
         # Actualiza la casilla anterior
         if self.tipo_anterior_casilla_actual is None:
@@ -186,7 +186,7 @@ class Laberinto:
 
         adyacentes = {}
         for mov in MovimientosPosibles:
-            nx, ny = posicion.desplazar(mov)
+            nx, ny = posicion + mov
             if 0 <= nx < self.dimensiones[0] and 0 <= ny < self.dimensiones[1]:
                 adyacentes[mov] = self.laberinto[nx][ny]
         return adyacentes

@@ -1,6 +1,7 @@
 """Módulo que define la clase Coordenada."""
 
 from dataclasses import dataclass
+from typing import Union
 
 from movimientos import MovimientosPosibles
 
@@ -25,6 +26,40 @@ class Coordenada:
         yield self.x
         yield self.y
 
+    def __add__(self, other: "Union[Coordenada, MovimientosPosibles, tuple[int, int]]"):
+        """
+        Suma la coordenada actual con otra Coordenada, MovimientosPosibles o una tupla de dos enteros.
+        """
+        if isinstance(other, Coordenada):
+            return Coordenada(self.x + other.x, self.y + other.y)
+        elif isinstance(other, MovimientosPosibles):
+            return Coordenada(self.x + other.value[0], self.y + other.value[1])
+        elif (
+            isinstance(other, tuple) and len(other) == 2 and all(isinstance(v, int) for v in other)
+        ):  # Es un tuple[int, int]
+            return Coordenada(self.x + other[0], self.y + other[1])
+        else:
+            raise TypeError(
+                "Una coordenada solo se puede sumar con una instancia de Coordenada, MovimientosPosibles o tuple[int, int]"
+            )
+
+    def __sub__(self, other: "Union[Coordenada, MovimientosPosibles, tuple[int, int]]"):
+        """
+        Resta la coordenada actual con otra Coordenada, MovimientosPosibles o una tupla de dos enteros.
+        """
+        if isinstance(other, Coordenada):
+            return Coordenada(self.x - other.x, self.y - other.y)
+        elif isinstance(other, MovimientosPosibles):
+            return Coordenada(self.x - other.value[0], self.y - other.value[1])
+        elif (
+            isinstance(other, tuple) and len(other) == 2 and all(isinstance(v, int) for v in other)
+        ):  # Es un tuple[int, int]
+            return Coordenada(self.x - other[0], self.y - other[1])
+        else:
+            raise TypeError(
+                "Una coordenada solo se puede restar con una instancia de Coordenada, MovimientosPosibles o tuple[int, int]"
+            )
+
     def distancia_euclidiana(self, otra: "Coordenada") -> float:
         """
         Calcula la distancia euclidiana entre esta coordenada y otra.
@@ -36,21 +71,3 @@ class Coordenada:
         Calcula la distancia de Manhattan entre esta coordenada y otra.
         """
         return abs(self.x - otra.x) + abs(self.y - otra.y)
-
-    def desplazar(self, vector) -> "Coordenada":
-        """
-        Retorna una nueva coordenada desplazada por el vector dado, sin modificar la actual.
-        El vector puede ser otra Coordenada, un MovimientosPosibles o un tuple[int, int].
-        """
-        if isinstance(vector, Coordenada):
-            return Coordenada(self.x + vector.x, self.y + vector.y)
-        elif isinstance(vector, MovimientosPosibles):
-            return Coordenada(self.x + vector.value[0], self.y + vector.value[1])
-        elif (
-            isinstance(vector, tuple)
-            and len(vector) == 2
-            and all(isinstance(v, int) for v in vector)
-        ):  # Es un tuple[int, int]
-            return Coordenada(self.x + vector[0], self.y + vector[1])
-        else:
-            raise TypeError("El vector debe ser una instancia de Coordenada o MovimientosPosibles")
