@@ -5,6 +5,7 @@ from typing import Optional, Type
 
 from casilla_laberinto import CasillaLaberinto
 from coordenada import Coordenada
+from exceptions import CreacionLaberintoError, MovimientoInvalidoError
 from jugador import Jugador, JugadorRandom
 from movimientos import MovimientosPosibles
 
@@ -17,7 +18,8 @@ class Laberinto:
     jugador: Jugador
     ticks_transcurridos: int
 
-    dimensiones: tuple[int, int]
+    filas: int
+    columnas: int
     prob_murallas: float
     prob_mover_murallas: float
     n_metas: int
@@ -48,7 +50,7 @@ class Laberinto:
             clase_jugador (Type[Jugador]): Clase del jugador a instanciar.
         """
 
-        self.dimensiones = dimensiones
+        self.filas, self.columnas = dimensiones
         self.prob_murallas = prob_murallas
         self.prob_mover_murallas = prob_mover_murallas
 
@@ -76,14 +78,13 @@ class Laberinto:
             print(f"Laberinto creado con Jugador de Tipo {self.jugador.__class__.__name__}.")
 
     def _crear_laberinto(self):
-        filas, columnas = self.dimensiones
         self.laberinto = []
         caminos_libres = []
 
         # Crear el laberinto aleatorio
-        for i in range(filas):
+        for i in range(self.filas):
             fila = []
-            for j in range(columnas):
+            for j in range(self.columnas):
                 coordenada = Coordenada(i, j)
                 if random() <= self.prob_murallas:
                     fila.append(CasillaLaberinto.MURALLA)
@@ -95,15 +96,18 @@ class Laberinto:
 
         # Seleccionar posición inicial del jugador
         if not caminos_libres:
-            raise ValueError("No hay caminos libres para ubicar al jugador.")
+            raise CreacionLaberintoError(
+                "No hay caminos libres para ubicar al jugador. El laberinto generado es inválido."
+            )
 
         self.jugador_pos = caminos_libres.pop(randint(0, len(caminos_libres) - 1))
-        x, y = self.jugador_pos
-        self.laberinto[x][y] = CasillaLaberinto.JUGADOR
+        self.laberinto[self.jugador_pos.x][self.jugador_pos.y] = CasillaLaberinto.JUGADOR
 
         # Seleccionar posiciones de metas
         if len(caminos_libres) < self.n_metas:
-            raise ValueError("No hay suficientes caminos libres para ubicar las metas.")
+            raise CreacionLaberintoError(
+                f"No hay suficientes caminos libres para ubicar las metas. Se requieren {self.n_metas}, pero solo hay {len(caminos_libres)} disponibles."
+            )
 
         # Elige de forma aleatoria las n metas (Real y falsas)
         metas = sample(caminos_libres, self.n_metas)
@@ -117,6 +121,11 @@ class Laberinto:
                 self.laberinto[meta.x][meta.y] = CasillaLaberinto.META_FALSA
             self.metas_pos.append(meta)
 
+    def coordenada_en_laberinto(self, coordenada: Coordenada) -> bool:
+        if 0 <= coordenada.x < self.filas and 0 <= coordenada.y < self.columnas:
+            return True
+        return False
+
     def tick(self):
         """Mueve las murallas de forma aleatoria y ejecuta el tick del jugador."""
         self.mover_jugador()
@@ -126,7 +135,6 @@ class Laberinto:
     def mover_murallas(self):
         """Mueve las murallas de forma aleatoria en el laberinto."""
         nuevas_murallas: set[Coordenada] = set()
-        filas, columnas = self.dimensiones
 
         for muralla in self.murallas_pos:
             nueva_pos = muralla
@@ -137,9 +145,9 @@ class Laberinto:
                 mov = movimientos_muralla[randint(0, len(movimientos_muralla) - 1)]
                 nueva_posicion = muralla + mov
                 # Verifica que la nueva posición esté dentro del laberinto y no colisione
+
                 if (
-                    0 <= nueva_posicion.x < filas
-                    and 0 <= nueva_posicion.y < columnas
+                    self.coordenada_en_laberinto(nueva_posicion)
                     and self.laberinto[nueva_posicion.x][nueva_posicion.y]
                     == CasillaLaberinto.CAMINO
                     and nueva_posicion not in nuevas_murallas
@@ -164,6 +172,15 @@ class Laberinto:
         # Calcular coordenadas nuevas
         nueva_posicion = self.jugador_pos + movimiento_jugador
 
+        if not self.coordenada_en_laberinto(nueva_posicion):
+            raise MovimientoInvalidoError(
+                f"El movimiento elegido por el jugador lo saca del mapa. Esto indica un error en la lógica de movimientos posibles.\n"
+                f"Posición actual: {self.jugador_pos}.\n"
+                f"Movimiento elegido: {movimiento_jugador}.\n"
+                f"Nueva posición calculada: {nueva_posicion}.\n"
+                f"Dimensiones del laberinto: {self.filas}x{self.columnas}."
+            )
+
         # Actualiza la casilla anterior
         if self.tipo_anterior_casilla_actual is None:
             self.laberinto[self.jugador_pos.x][self.jugador_pos.y] = CasillaLaberinto.CAMINO
@@ -186,9 +203,9 @@ class Laberinto:
 
         adyacentes = {}
         for mov in MovimientosPosibles:
-            nx, ny = posicion + mov
-            if 0 <= nx < self.dimensiones[0] and 0 <= ny < self.dimensiones[1]:
-                adyacentes[mov] = self.laberinto[nx][ny]
+            nueva_posicion = posicion + mov
+            if self.coordenada_en_laberinto(nueva_posicion):
+                adyacentes[mov] = self.laberinto[nueva_posicion.x][nueva_posicion.y]
         return adyacentes
 
     def jugador_gano(self) -> bool:

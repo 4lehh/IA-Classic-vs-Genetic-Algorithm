@@ -2,6 +2,7 @@
 
 import os
 
+from exceptions import CreacionLaberintoError, MetaNoEncontradaError, MovimientoInvalidoError
 from jugador import JugadorAEstrella, JugadorQlearning, JugadorRandom
 from laberinto import Laberinto
 
@@ -68,7 +69,7 @@ def simular_laberinto(laberinto: Laberinto):
     try:
         while True:
             if contador >= LIMITE_DE_TICKS_DE_SIMULACION:
-                print("Se supero el limite de tiempo de simulacion.")
+                print("Se superó el límite de tiempo de simulación.")
                 break
 
             mover_murallas_imprimir_laberinto(laberinto=laberinto)
@@ -82,8 +83,8 @@ def simular_laberinto(laberinto: Laberinto):
             mover_jugador_imprimir_laberinto(laberinto=laberinto)
 
             if laberinto.jugador_gano():
-                print("LLEGO A LA META!!!")
-                print(f"Se demoro {laberinto.ticks_transcurridos} ticks.")
+                print("¡LLEGÓ A LA META!")
+                print(f"Se demoró {laberinto.ticks_transcurridos} ticks.")
                 exit(0)
 
             if preguntar:
@@ -95,6 +96,12 @@ def simular_laberinto(laberinto: Laberinto):
 
             contador += 1
 
+    except CreacionLaberintoError as e:
+        print(f"Error al crear el laberinto: {e}")
+    except MovimientoInvalidoError as e:
+        print(f"Error de movimiento: {e}")
+    except MetaNoEncontradaError as e:
+        print(f"Error de meta: {e}")
     except KeyboardInterrupt:
         print("\nInterrumpido por el usuario.")
         exit(0)

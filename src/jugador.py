@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Optional
 
 from casilla_laberinto import CasillaLaberinto
 from coordenada import Coordenada
+from exceptions import JugadorError, MetaNoEncontradaError
 from movimientos import MovimientosPosibles
 
 if TYPE_CHECKING:
@@ -29,14 +30,6 @@ class Jugador(ABC):
             laberinto: Instancia del laberinto.
         """
         self.laberinto = laberinto
-
-    def validar_movimiento(self, posicion_al_mover: Coordenada) -> bool:
-        filas = len(self.laberinto.laberinto)
-        columnas = len(self.laberinto.laberinto[0])
-        x, y = posicion_al_mover
-        if x < 0 or x >= filas or y < 0 or y >= columnas:
-            return False
-        return True
 
     def tick(self) -> MovimientosPosibles:
         """Elige y retorna un movimiento válido para el jugador."""
@@ -117,9 +110,8 @@ class JugadorQlearning(Jugador):
         self.posiciones_visitadas = deque(maxlen=10)
 
         # Inicializar Q-table para cada posición posible
-        filas, columnas = self.laberinto.dimensiones
-        for i in range(filas):
-            for j in range(columnas):
+        for i in range(self.laberinto.filas):
+            for j in range(self.laberinto.columnas):
                 self.Q[Coordenada(i, j)] = {mov: 0.0 for mov in MovimientosPosibles}
 
         self._entrenar()
@@ -141,7 +133,7 @@ class JugadorQlearning(Jugador):
         # Simular nueva posición
         nueva_posicion = pos_actual + mov_elegido
 
-        if not self.validar_movimiento(nueva_posicion):
+        if not self.laberinto.coordenada_en_laberinto(nueva_posicion):
             return MovimientosPosibles.NO_MOVERSE
 
         casilla_siguiente = self.laberinto.laberinto[nueva_posicion.x][nueva_posicion.y]
@@ -185,8 +177,8 @@ class JugadorQlearning(Jugador):
             dist_actual = min(pos_actual.distancia_manhatan(meta) for meta in metas_no_visitadas)
             dist_nueva = min(pos_nueva.distancia_manhatan(meta) for meta in metas_no_visitadas)
         else:
-            raise ValueError(
-                "Ya no quedan metas, por lo que el programa ya debio de haber finalizado."
+            raise MetaNoEncontradaError(
+                "Ya no quedan metas, por lo que el programa ya debió de haber finalizado."
             )
 
         reward = dist_actual - dist_nueva  # positivo si se acercó, negativo si se alejó
@@ -210,7 +202,7 @@ class JugadorQlearning(Jugador):
         epsilon = self.epsilon
 
         pasos_maximos = (
-            (self.laberinto.dimensiones[0] + self.laberinto.dimensiones[1]) * 10
+            (self.laberinto.filas + self.laberinto.columnas) * 10
             if max_steps is None
             else max_steps
         )
@@ -221,7 +213,7 @@ class JugadorQlearning(Jugador):
                 print(f"Entrenamiento numero {ep + 1}.")
 
             self.laberinto = Laberinto(
-                dimensiones=self.laberinto.dimensiones,
+                dimensiones=(self.laberinto.filas, self.laberinto.columnas),
                 prob_murallas=self.laberinto.prob_murallas,
                 prob_mover_murallas=self.laberinto.prob_mover_murallas,
                 n_metas=self.laberinto.n_metas,
@@ -251,12 +243,11 @@ class JugadorQlearning(Jugador):
         import numpy as np
 
         acciones = list(MovimientosPosibles)
-        filas, columnas = self.laberinto.dimensiones
         fig, axs = plt.subplots(1, len(acciones), figsize=(4 * len(acciones), 4))
         for idx, accion in enumerate(acciones):
-            matriz_q = np.zeros((filas, columnas))
-            for i in range(filas):
-                for j in range(columnas):
+            matriz_q = np.zeros((self.laberinto.filas, self.laberinto.columnas))
+            for i in range(self.laberinto.filas):
+                for j in range(self.laberinto.columnas):
                     matriz_q[i, j] = self.Q[Coordenada(i, j)][accion]
             ax = axs[idx] if len(acciones) > 1 else axs
             im = ax.imshow(matriz_q, cmap="hot", interpolation="nearest")
