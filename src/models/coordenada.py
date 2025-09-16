@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Union
 
-from movimientos import MovimientosPosibles
+from .movimientos import MovimientosPosibles
 
 
 @dataclass(frozen=True)
