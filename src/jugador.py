@@ -6,6 +6,7 @@ from random import choice, random
 from typing import TYPE_CHECKING, Optional
 
 from casilla_laberinto import CasillaLaberinto
+from coordenada import Coordenada
 from movimientos import MovimientosPosibles
 
 if TYPE_CHECKING:
@@ -29,7 +30,7 @@ class Jugador(ABC):
         """
         self.laberinto = laberinto
 
-    def validar_movimiento(self, posicion_al_mover: tuple[int, int]) -> bool:
+    def validar_movimiento(self, posicion_al_mover: Coordenada) -> bool:
         filas = len(self.laberinto.laberinto)
         columnas = len(self.laberinto.laberinto[0])
         x, y = posicion_al_mover
@@ -101,10 +102,10 @@ class JugadorQlearning(Jugador):
     gamma: float  # descuento futuro
     epsilon: float  # Nivel de exploración
     Q: dict[
-        tuple[int, int], dict[MovimientosPosibles, float]
+        Coordenada, dict[MovimientosPosibles, float]
     ]  # Tabla que representa, por cada posicion, que acciones podemos tomar, y por cada una de estas, cual es el valor que nos aporta tomar dicha accion
-    metas_visitadas: list[tuple[int, int]]
-    posiciones_visitadas: deque
+    metas_visitadas: list[Coordenada]
+    posiciones_visitadas: deque[Coordenada]
 
     def __init__(self, laberinto, alpha=0.1, gamma=0.9, epsilon=0.2):
         super().__init__(laberinto)
@@ -116,10 +117,10 @@ class JugadorQlearning(Jugador):
         self.posiciones_visitadas = deque(maxlen=10)
 
         # Inicializar Q-table para cada posición posible
-        filas, columnas = self.laberinto.dimenciones
+        filas, columnas = self.laberinto.dimensiones
         for i in range(filas):
             for j in range(columnas):
-                self.Q[(i, j)] = {mov: 0.0 for mov in MovimientosPosibles}
+                self.Q[Coordenada(i, j)] = {mov: 0.0 for mov in MovimientosPosibles}
 
         self._entrenar()
         self.mostrar_mapas_calor_Q()
@@ -138,20 +139,19 @@ class JugadorQlearning(Jugador):
             mov_elegido = choice(candidatos)
 
         # Simular nueva posición
-        dx, dy = mov_elegido.value
-        nx, ny = pos_actual[0] + dx, pos_actual[1] + dy
+        nueva_posicion = pos_actual.desplazar(mov_elegido)
 
-        if not self.validar_movimiento((nx, ny)):
+        if not self.validar_movimiento(nueva_posicion):
             return MovimientosPosibles.NO_MOVERSE
 
-        casilla_siguiente = self.laberinto.laberinto[nx][ny]
+        casilla_siguiente = self.laberinto.laberinto[nueva_posicion.x][nueva_posicion.y]
 
         # Calcular recompensa
-        reward = self._calcular_recompensa(pos_actual, (nx, ny), casilla_siguiente)
+        reward = self._calcular_recompensa(pos_actual, nueva_posicion, casilla_siguiente)
 
         # Actualizar Q-table
         q_actual = self.Q[pos_actual][mov_elegido]
-        q_max_sig = max(self.Q[(nx, ny)].values())
+        q_max_sig = max(self.Q[nueva_posicion].values())
 
         # Actualiza el valor Q para la posición y acción actual usando la ecuación de Q-learning:
         # Q(s,a) ← Q(s,a) + α * [recompensa + γ * max(Q(s',a')) - Q(s,a)]
@@ -164,30 +164,26 @@ class JugadorQlearning(Jugador):
         self.Q[pos_actual][mov_elegido] += self.alpha * (reward + self.gamma * q_max_sig - q_actual)
 
         # Si llege a una meta la marco para no luego no trater de ir hacia ella
-        if (nx, ny) in self.laberinto.metas_pos:
-            self.metas_visitadas.append((nx, ny))
+        if nueva_posicion in self.laberinto.metas_pos:
+            self.metas_visitadas.append(nueva_posicion)
 
-        # Recuerdo las posiciones pasadas con tal de evitar regresar, esto lo penalizare
-        # La idea es que siempre avanze, SIEMPRE HACIA LA VICTORIA
-        self.posiciones_visitadas.append((nx, ny))
+        # Recuerdo las posiciones pasadas con tal de evitar regresar, esto lo penalizaré
+        # La idea es que siempre avance, SIEMPRE HACIA LA VICTORIA
+        self.posiciones_visitadas.append(nueva_posicion)
 
         # Decae epsilon cada vez que elige
         self.epsilon = max(self.epsilon * 0.95, 0.01)
 
         return mov_elegido
 
-    def _calcular_recompensa(self, pos_actual, pos_nueva, casilla):
+    def _calcular_recompensa(self, pos_actual: Coordenada, pos_nueva: Coordenada, casilla):
         # Distancia Manhattan a la meta más cercana
         metas_no_visitadas = [
             pos for pos in self.laberinto.metas_pos if pos not in self.metas_visitadas
         ]
         if metas_no_visitadas:
-            dist_actual = min(
-                abs(pos_actual[0] - mx) + abs(pos_actual[1] - my) for mx, my in metas_no_visitadas
-            )
-            dist_nueva = min(
-                abs(pos_nueva[0] - mx) + abs(pos_nueva[1] - my) for mx, my in metas_no_visitadas
-            )
+            dist_actual = min(pos_actual.distancia_manhatan(meta) for meta in metas_no_visitadas)
+            dist_nueva = min(pos_nueva.distancia_manhatan(meta) for meta in metas_no_visitadas)
         else:
             raise ValueError(
                 "Ya no quedan metas, por lo que el programa ya debio de haber finalizado."
@@ -205,16 +201,16 @@ class JugadorQlearning(Jugador):
             reward -= 1
         return reward
 
-    def _entrenar(self, n_episodios: int = 100000, max_steps: Optional[int] = None):
+    def _entrenar(self, n_episodios: int = 10000, max_steps: Optional[int] = None):
         from laberinto import Laberinto  # Import local para evitar ciclo
 
-        # Cambio self.laberinto para que al jecutar tick en el labernto de entrenamiento el jugador use al de entrenamiento
+        # Cambio self.laberinto para que al ejecutar tick en el laberinto de entrenamiento el jugador use al de entrenamiento
         # Luego hago que use de nuevo el self.laberinto que debe de resolver
         laberinto_original = self.laberinto
         epsilon = self.epsilon
 
         pasos_maximos = (
-            (self.laberinto.dimenciones[0] + self.laberinto.dimenciones[1]) * 10
+            (self.laberinto.dimensiones[0] + self.laberinto.dimensiones[1]) * 10
             if max_steps is None
             else max_steps
         )
@@ -225,7 +221,7 @@ class JugadorQlearning(Jugador):
                 print(f"Entrenamiento numero {ep + 1}.")
 
             self.laberinto = Laberinto(
-                dimenciones=self.laberinto.dimenciones,
+                dimensiones=self.laberinto.dimensiones,
                 prob_murallas=self.laberinto.prob_murallas,
                 prob_mover_murallas=self.laberinto.prob_mover_murallas,
                 n_metas=self.laberinto.n_metas,
@@ -255,13 +251,13 @@ class JugadorQlearning(Jugador):
         import numpy as np
 
         acciones = list(MovimientosPosibles)
-        filas, columnas = self.laberinto.dimenciones
+        filas, columnas = self.laberinto.dimensiones
         fig, axs = plt.subplots(1, len(acciones), figsize=(4 * len(acciones), 4))
         for idx, accion in enumerate(acciones):
             matriz_q = np.zeros((filas, columnas))
             for i in range(filas):
                 for j in range(columnas):
-                    matriz_q[i, j] = self.Q[(i, j)][accion]
+                    matriz_q[i, j] = self.Q[Coordenada(i, j)][accion]
             ax = axs[idx] if len(acciones) > 1 else axs
             im = ax.imshow(matriz_q, cmap="hot", interpolation="nearest")
             ax.set_title(f"Acción: {accion.name}")
@@ -278,9 +274,9 @@ class JugadorAEstrella(Jugador):
     Además, se penalizan las posiciones recientemente visitadas para evitar ciclos y encontrar rutas más eficientes.
     """
 
-    costo_acumulado: dict[tuple[int, int], int]
-    visitados_recientes: deque[tuple[int, int]]
-    metas_visitadas: list[tuple[int, int]]
+    costo_acumulado: dict[Coordenada, int]
+    visitados_recientes: deque[Coordenada]
+    metas_visitadas: list[Coordenada]
 
     def __init__(self, laberinto):
         super().__init__(laberinto)
@@ -288,9 +284,10 @@ class JugadorAEstrella(Jugador):
         self.visitados_recientes = deque(maxlen=10)
         self.metas_visitadas = []
 
-    def costo_funcion_f(self, g_nuevo: int, nueva_posicion: tuple, posicion_meta: tuple) -> int:
-        # Distancia Manhattan a la meta
-        h = abs(posicion_meta[0] - nueva_posicion[0]) + abs(posicion_meta[1] - nueva_posicion[1])
+    def costo_funcion_f(
+        self, g_nuevo: int, nueva_posicion: Coordenada, posicion_meta: Coordenada
+    ) -> int:
+        h = posicion_meta.distancia_manhatan(nueva_posicion)
         return g_nuevo + h
 
     def _eleccion_moverse(self, movimientos_validos):
@@ -316,10 +313,7 @@ class JugadorAEstrella(Jugador):
         # Recorremos los movimientos validos y calculamos su F
         for mov in movimientos_validos:
             # Posicion nueva si se realiza el movimiento
-            nueva_posicion = (
-                mov.value[0] + posicion_jugador[0],
-                mov.value[1] + posicion_jugador[1],
-            )
+            nueva_posicion = posicion_jugador.desplazar(mov)
 
             # Coste de movimiento (1 por defecto)
             g_nuevo = g_actual + 1
@@ -341,10 +335,7 @@ class JugadorAEstrella(Jugador):
             return choice(movimientos_validos)
 
         # Actualizo las variables de estado
-        nueva_posicion = (
-            posicion_jugador[0] + mejor_mov.value[0],
-            posicion_jugador[1] + mejor_mov.value[1],
-        )
+        nueva_posicion = posicion_jugador.desplazar(mejor_mov)
 
         # Guardamos ultimas posiciones para evitar ciclos
         self.visitados_recientes.append(nueva_posicion)

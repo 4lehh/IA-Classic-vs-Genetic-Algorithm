@@ -4,6 +4,7 @@ from random import randint, random, sample
 from typing import Optional, Type
 
 from casilla_laberinto import CasillaLaberinto
+from coordenada import Coordenada
 from jugador import Jugador, JugadorRandom
 from movimientos import MovimientosPosibles
 
@@ -16,21 +17,21 @@ class Laberinto:
     jugador: Jugador
     ticks_transcurridos: int
 
-    dimenciones: tuple[int, int]
+    dimensiones: tuple[int, int]
     prob_murallas: float
     prob_mover_murallas: float
     n_metas: int
 
-    jugador_pos: tuple[int, int]
-    metas_pos: list[tuple[int, int]]
-    meta_real_pos: tuple[int, int]
-    murallas_pos: list[tuple[int, int]]
+    jugador_pos: Coordenada
+    metas_pos: list[Coordenada]
+    meta_real_pos: Coordenada
+    murallas_pos: list[Coordenada]
 
     tipo_anterior_casilla_actual: CasillaLaberinto | None
 
     def __init__(
         self,
-        dimenciones: tuple[int, int],
+        dimensiones: tuple[int, int],
         prob_murallas: float = 0.2,
         prob_mover_murallas: float = 0.3,
         n_metas: int = 3,
@@ -40,14 +41,14 @@ class Laberinto:
         """Inicializa el laberinto con sus dimensiones y probabilidades.
 
         Args:
-            dimenciones (tuple[int, int]): Dimensiones del laberinto.
-            prob_murallas (float): Probabilidad de generacion de murallas.
+            dimensiones (tuple[int, int]): Dimensiones del laberinto.
+            prob_murallas (float): Probabilidad de generación de murallas.
             prob_mover_murallas (float): Probabilidad de mover cada muralla.
             n_metas (int): Número de metas en el laberinto.
             clase_jugador (Type[Jugador]): Clase del jugador a instanciar.
         """
 
-        self.dimenciones = dimenciones
+        self.dimensiones = dimensiones
         self.prob_murallas = prob_murallas
         self.prob_mover_murallas = prob_mover_murallas
 
@@ -75,7 +76,7 @@ class Laberinto:
             print(f"Laberinto creado con Jugador de Tipo {self.jugador.__class__.__name__}.")
 
     def _crear_laberinto(self):
-        filas, columnas = self.dimenciones
+        filas, columnas = self.dimensiones
         self.laberinto = []
         caminos_libres = []
 
@@ -83,12 +84,13 @@ class Laberinto:
         for i in range(filas):
             fila = []
             for j in range(columnas):
+                coordenada = Coordenada(i, j)
                 if random() <= self.prob_murallas:
                     fila.append(CasillaLaberinto.MURALLA)
-                    self.murallas_pos.append((i, j))
+                    self.murallas_pos.append(coordenada)
                 else:
                     fila.append(CasillaLaberinto.CAMINO)
-                    caminos_libres.append((i, j))
+                    caminos_libres.append(coordenada)
             self.laberinto.append(fila)
 
         # Seleccionar posición inicial del jugador
@@ -107,13 +109,13 @@ class Laberinto:
         metas = sample(caminos_libres, self.n_metas)
         real_id = randint(0, self.n_metas - 1)
 
-        for id, (mx, my) in enumerate(metas):
+        for id, meta in enumerate(metas):
             if id == real_id:
-                self.laberinto[mx][my] = CasillaLaberinto.META_REAL
-                self.meta_real_pos = (mx, my)
+                self.laberinto[meta.x][meta.y] = CasillaLaberinto.META_REAL
+                self.meta_real_pos = meta
             else:
-                self.laberinto[mx][my] = CasillaLaberinto.META_FALSA
-            self.metas_pos.append((mx, my))
+                self.laberinto[meta.x][meta.y] = CasillaLaberinto.META_FALSA
+            self.metas_pos.append(meta)
 
     def tick(self):
         """Mueve las murallas de forma aleatoria y ejecuta el tick del jugador."""
@@ -123,30 +125,30 @@ class Laberinto:
 
     def mover_murallas(self):
         """Mueve las murallas de forma aleatoria en el laberinto."""
-        nuevas_murallas = set()
-        filas, columnas = self.dimenciones
+        nuevas_murallas: set[Coordenada] = set()
+        filas, columnas = self.dimensiones
 
-        for mx, my in self.murallas_pos:
-            nueva_pos = (mx, my)
+        for muralla in self.murallas_pos:
+            nueva_pos = muralla
             if random() <= self.prob_mover_murallas:
                 movimientos_muralla = [
                     m for m in MovimientosPosibles if m != MovimientosPosibles.NO_MOVERSE
                 ]
                 mov = movimientos_muralla[randint(0, len(movimientos_muralla) - 1)]
-                dx, dy = mov.value
-                nx, ny = mx + dx, my + dy
+                nueva_posicion = muralla.desplazar(mov)
                 # Verifica que la nueva posición esté dentro del laberinto y no colisione
                 if (
-                    0 <= nx < filas
-                    and 0 <= ny < columnas
-                    and self.laberinto[nx][ny] == CasillaLaberinto.CAMINO
-                    and (nx, ny) not in nuevas_murallas
+                    0 <= nueva_posicion.x < filas
+                    and 0 <= nueva_posicion.y < columnas
+                    and self.laberinto[nueva_posicion.x][nueva_posicion.y]
+                    == CasillaLaberinto.CAMINO
+                    and nueva_posicion not in nuevas_murallas
                 ):
                     # Actualiza la casilla anterior a CAMINO
-                    self.laberinto[mx][my] = CasillaLaberinto.CAMINO
+                    self.laberinto[muralla.x][muralla.y] = CasillaLaberinto.CAMINO
                     # Mueve la muralla
-                    self.laberinto[nx][ny] = CasillaLaberinto.MURALLA
-                    nueva_pos = (nx, ny)
+                    self.laberinto[nueva_posicion.x][nueva_posicion.y] = CasillaLaberinto.MURALLA
+                    nueva_pos = nueva_posicion
             nuevas_murallas.add(nueva_pos)
         self.murallas_pos = list(nuevas_murallas)
 
@@ -160,33 +162,32 @@ class Laberinto:
             return
 
         # Calcular coordenadas nuevas
-        dx, dy = movimiento_jugador.value
-        x, y = self.jugador_pos
-        nx, ny = x + dx, y + dy
+        nueva_posicion = self.jugador_pos.desplazar(movimiento_jugador)
 
         # Actualiza la casilla anterior
         if self.tipo_anterior_casilla_actual is None:
-            self.laberinto[x][y] = CasillaLaberinto.CAMINO
+            self.laberinto[self.jugador_pos.x][self.jugador_pos.y] = CasillaLaberinto.CAMINO
         else:
-            self.laberinto[x][y] = self.tipo_anterior_casilla_actual
+            self.laberinto[self.jugador_pos.x][
+                self.jugador_pos.y
+            ] = self.tipo_anterior_casilla_actual
 
         # Actualiza la posición del jugador
-        self.tipo_anterior_casilla_actual = self.laberinto[nx][ny]
-        self.jugador_pos = (nx, ny)
-        self.laberinto[nx][ny] = CasillaLaberinto.JUGADOR
+        self.tipo_anterior_casilla_actual = self.laberinto[nueva_posicion.x][nueva_posicion.y]
+        self.jugador_pos = nueva_posicion
+        self.laberinto[nueva_posicion.x][nueva_posicion.y] = CasillaLaberinto.JUGADOR
 
-    def casillas_adyacentes(self, pos=None):
+    def casillas_adyacentes(
+        self, posicion: Optional[Coordenada] = None
+    ) -> dict[MovimientosPosibles, Coordenada]:
         """Devuelve un dict con los movimientos posibles y el tipo de casilla adyacente al jugador (o a la posición dada)."""
-        if pos is None:
-            x, y = self.jugador_pos
-        else:
-            x, y = pos
+        if posicion is None:
+            posicion = self.jugador_pos
 
         adyacentes = {}
         for mov in MovimientosPosibles:
-            dx, dy = mov.value
-            nx, ny = x + dx, y + dy
-            if 0 <= nx < self.dimenciones[0] and 0 <= ny < self.dimenciones[1]:
+            nx, ny = posicion.desplazar(mov)
+            if 0 <= nx < self.dimensiones[0] and 0 <= ny < self.dimensiones[1]:
                 adyacentes[mov] = self.laberinto[nx][ny]
         return adyacentes
 
