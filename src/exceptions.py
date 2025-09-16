@@ -15,3 +15,7 @@ class MetaNoEncontradaError(Exception):
 
 class CreacionLaberintoError(Exception):
     """Se lanza cuando falla la creacion del Laberinto."""
+
+
+class NotImplementedError(Exception):
+    """Lo que lanza este error aun no se a terminado de implementar."""

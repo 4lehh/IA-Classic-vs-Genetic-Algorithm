@@ -2,7 +2,12 @@
 
 import os
 
-from exceptions import CreacionLaberintoError, MetaNoEncontradaError, MovimientoInvalidoError
+from exceptions import (
+    CreacionLaberintoError,
+    MetaNoEncontradaError,
+    MovimientoInvalidoError,
+    NotImplementedError,
+)
 from jugador import JugadorAEstrella, JugadorQlearning, JugadorRandom
 from laberinto import Laberinto
 
@@ -102,6 +107,8 @@ def simular_laberinto(laberinto: Laberinto):
         print(f"Error de movimiento: {e}")
     except MetaNoEncontradaError as e:
         print(f"Error de meta: {e}")
+    except NotImplementedError as e:
+        print(f"No implementado: {e}")
     except KeyboardInterrupt:
         print("\nInterrumpido por el usuario.")
         exit(0)

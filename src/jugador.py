@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Optional
 
 from casilla_laberinto import CasillaLaberinto
 from coordenada import Coordenada
-from exceptions import JugadorError, MetaNoEncontradaError
+from exceptions import JugadorError, MetaNoEncontradaError, NotImplementedError
 from movimientos import MovimientosPosibles
 
 if TYPE_CHECKING:
@@ -72,8 +72,7 @@ class JugadorGreedy(Jugador):
         self, movimientos_validos: list[MovimientosPosibles]
     ) -> MovimientosPosibles:
 
-        ### FALTA IMPLEMENTAR, ESTO ES PARA QUE NO DE ERROR DE TIPADO
-        return MovimientosPosibles.NO_MOVERSE
+        raise NotImplementedError("JugadorGreedy aun no esta implementado.")
 
 
 class JugadorGenetico(Jugador):
@@ -81,8 +80,7 @@ class JugadorGenetico(Jugador):
         self, movimientos_validos: list[MovimientosPosibles]
     ) -> MovimientosPosibles:
 
-        ### FALTA IMPLEMENTAR, ESTO ES PARA QUE NO DE ERROR DE TIPADO
-        return MovimientosPosibles.NO_MOVERSE
+        raise NotImplementedError("JugadorGenetico aun no esta implementado.")
 
 
 class JugadorQlearning(Jugador):
