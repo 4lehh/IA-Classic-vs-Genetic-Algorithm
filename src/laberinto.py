@@ -219,21 +219,17 @@ class Laberinto:
             return True
         return False
 
-    def _mostrar_markdown(self) -> str:
-        """Devuelve una representación del laberinto en formato markdown."""
-        simbolos = {
-            CasillaLaberinto.MURALLA: "⬛",
-            CasillaLaberinto.CAMINO: "⬜",
-            CasillaLaberinto.JUGADOR: "🧑",
-            CasillaLaberinto.META_FALSA: "❌",
-            CasillaLaberinto.META_REAL: "🏁",
-        }
+    def imprimir(self):
+        """
+        Imprime el laberinto en formato markdown y muestra la leyenda de símbolos de forma dinámica.
+        """
         filas_md = []
         for fila in self.laberinto:
-            filas_md.append("".join(simbolos[c] for c in fila))
-        return "\n".join(filas_md)
+            filas_md.append("".join(c.value for c in fila))
+        print("\n".join(filas_md))
 
-    def imprimir(self):
-        """Imprime el laberinto en formato markdown y muestra la leyenda de símbolos."""
-        print(self._mostrar_markdown())
-        print("\nLeyenda: 🧑=Jugador, 🏁=Meta real, ❌=Meta falsa, ⬛=Muralla, ⬜=Camino")
+        leyenda = "\nLeyenda: " + ", ".join(
+            f"{casilla.value}={casilla.name.replace('_', ' ').capitalize()}"
+            for casilla in CasillaLaberinto
+        )
+        print(leyenda)
