@@ -1,4 +1,8 @@
-"""Módulo que define el jugador basado en Q-learning con ajustes para mejorar acertividad para el laberinto."""
+"""
+Módulo que implementa un jugador para laberintos combinando Q-learning y A*.
+
+Este módulo define una clase que fusiona el aprendizaje por refuerzo (Q-learning) con la búsqueda informada de A*.
+"""
 
 from collections import deque
 from random import choice, random
@@ -11,8 +15,11 @@ from models import CasillaLaberinto, Coordenada, MovimientosPosibles
 
 class JugadorQlearningEstrella(Jugador):
     """
-    Jugador que aprende a moverse en el laberinto usando Q-learning,
-    con recompensas basadas en acercarse a metas posibles y alcanzar la meta real.
+    Jugador que combina Q-learning y A* para aprender a moverse en el laberinto.
+
+    Esta clase fusiona la exploración y aprendizaje de Q-learning con la heurística de búsqueda
+    informada de A* (A estrella), utilizando recompensas tanto por acercarse a metas como por
+    alcanzar la meta real, y ponderando la distancia heurística en la toma de decisiones.
     """
 
     alpha: float  # tasa de aprendizaje
@@ -25,6 +32,17 @@ class JugadorQlearningEstrella(Jugador):
     posiciones_visitadas: deque[Coordenada]
 
     def __init__(self, laberinto, alpha=0.1, gamma=0.9, epsilon=0.2, betha=0.5, omega=0.5):
+        """
+        Inicializa una instancia de JugadorQlearningEstrella.
+
+        Args:
+            laberinto: Instancia del laberinto sobre el que se juega.
+            alpha (float): Tasa de aprendizaje.
+            gamma (float): Factor de descuento futuro.
+            epsilon (float): Nivel de exploración.
+            betha (float): Peso de la Q-table.
+            omega (float): Peso de la heurística (distancia a la meta).
+        """
         super().__init__(laberinto)
         self.alpha = alpha
         self.gamma = gamma
@@ -206,9 +224,7 @@ class JugadorQlearningEstrella(Jugador):
         self.epsilon = epsilon
 
     def mostrar_mapas_calor_Q(self):
-        """
-        Muestra un mapa de calor para cada acción en la matriz Q.
-        """
+        """Muestra un mapa de calor para cada acción en la matriz Q."""
         import matplotlib.pyplot as plt
         import numpy as np
 
