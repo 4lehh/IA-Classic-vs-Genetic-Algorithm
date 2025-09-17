@@ -1,6 +1,6 @@
 """Módulo principal para la simulación y manejo del laberinto."""
 
-from jugador import JugadorAEstrella, JugadorGreedy, JugadorQlearning, JugadorRandom
+from jugador import JugadorAEstrella, JugadorGreedy, JugadorQlearning, JugadorQlearningEstrella, JugadorRandom
 from laberinto import Laberinto
 from simulacion import simular_laberinto
 
@@ -12,7 +12,7 @@ def main():
         prob_murallas=0.2,
         prob_mover_murallas=0.01,
         n_metas=3,
-        clase_jugador=JugadorGreedy,
+        clase_jugador=JugadorQlearningEstrella,
     )
     simular_laberinto(laberinto)
 
