@@ -8,4 +8,4 @@ __pychache__/
 .ruff_cache/
 .pdm-python
 .venv
-.png
+*.png
