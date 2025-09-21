@@ -71,10 +71,10 @@ class JugadorQlearning(Jugador):
         if not self.laberinto.coordenada_en_laberinto(nueva_posicion):
             return MovimientosPosibles.NO_MOVERSE
 
-        casilla_siguiente = self.laberinto.get_casilla(nueva_posicion)
-
         # Calcular recompensa
-        reward = self._calcular_recompensa(pos_actual, nueva_posicion, casilla_siguiente)
+        reward = self._calcular_recompensa(
+            pos_actual, nueva_posicion, self.laberinto.get_casilla(nueva_posicion)
+        )
 
         # Actualizar Q-table
         q_actual = self.Q[pos_actual][mov_elegido]
