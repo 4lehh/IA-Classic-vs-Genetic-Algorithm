@@ -63,34 +63,36 @@ class JugadorQlearningEstrella(Jugador):
 
     def _eleccion_moverse(self, movimientos_validos) -> MovimientosPosibles:
         """
-        Elige el movimiento usando la política Q-learning entrenada.
+        Elige el movimiento óptimo combinando la política Q-learning y la heurística A*.
+
+        Si el agente decide explorar (según epsilon), elige un movimiento aleatorio.
+        Si explota, pondera el valor Q de cada acción y la distancia a la meta más cercana,
+        buscando maximizar la recompensa esperada y minimizar la distancia heurística.
 
         Args:
             movimientos_validos (list[MovimientosPosibles]): Movimientos posibles para el jugador.
 
         Returns:
-            MovimientosPosibles: Movimiento elegido por la política Q-learning.
+            MovimientosPosibles: Movimiento seleccionado por la combinación de Q-learning y A*.
         """
         pos_actual = self.laberinto.jugador_pos
         # Variables auxiliares para la selección del mejor movimiento
         mejor_mov = None
         mejor_balance = 0.0
-        metas_disponibles = [
-            pos for pos in self.laberinto.metas_pos if pos not in self.metas_visitadas
-        ]
 
         # Explorar o explotar
         if random() < self.epsilon:
             mejor_mov = choice(movimientos_validos)
         else:
             q_vals = {mov: self.Q[pos_actual][mov] for mov in movimientos_validos}
+            meta_objetivo = self._seleccionar_meta()
             for valores_coordenadas, costo_q_table in q_vals.items():
-                meta = choice(metas_disponibles)
-
                 # Idea: balance = betha*valor_que_aporta_la_accion_q_table - omega*distancia_euclidiana_a_la_meta
 
-                balance = self.betha * costo_q_table - self.omega * meta.distancia_euclidiana(
-                    pos_actual + valores_coordenadas
+                balance = (
+                    self.betha * costo_q_table
+                    - self.omega
+                    * meta_objetivo.distancia_euclidiana(pos_actual + valores_coordenadas)
                 )
                 if balance > mejor_balance or mejor_mov is None:
                     mejor_balance = balance
@@ -137,6 +139,31 @@ class JugadorQlearningEstrella(Jugador):
         self.epsilon = max(self.epsilon * 0.95, 0.01)
 
         return mejor_mov
+
+    def _seleccionar_meta(self) -> Coordenada:
+        """
+        Selecciona la meta no visitada más cercana al jugador (según distancia Manhattan).
+        Si hay varias metas a la misma distancia mínima, selecciona una al azar entre ellas.
+
+        Returns:
+            Coordenada: Posición de la meta seleccionada.
+        """
+        metas_disponibles = [
+            pos for pos in self.laberinto.metas_pos if pos not in self.metas_visitadas
+        ]
+
+        metas_posibles = []
+        distancia_menor = float("inf")
+
+        for meta in metas_disponibles:
+            distancia_a_meta = self.laberinto.jugador_pos.distancia_manhatan(meta)
+            if distancia_a_meta < distancia_menor:
+                distancia_menor = distancia_a_meta
+                metas_posibles = [meta]
+            elif distancia_a_meta == distancia_menor:
+                metas_posibles.append(meta)
+
+        return choice(metas_posibles)
 
     def _calcular_recompensa(self, pos_actual: Coordenada, pos_nueva: Coordenada, casilla):
         """
