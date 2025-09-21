@@ -38,7 +38,8 @@ class JugadorAEstrella(Jugador):
 
     def _seleccionar_meta(self) -> Coordenada:
         """
-        Selecciona una meta disponible al azar entre las no visitadas.
+        Selecciona la meta no visitada más cercana al jugador (según distancia Manhattan).
+        Si hay varias metas a la misma distancia mínima, selecciona una al azar entre ellas.
 
         Returns:
             Coordenada: Posición de la meta seleccionada.
@@ -46,7 +47,19 @@ class JugadorAEstrella(Jugador):
         metas_disponibles = [
             pos for pos in self.laberinto.metas_pos if pos not in self.metas_visitadas
         ]
-        return choice(metas_disponibles)
+
+        metas_posibles = []
+        distancia_menor = float("inf")
+
+        for meta in metas_disponibles:
+            distancia_a_meta = self.laberinto.jugador_pos.distancia_manhatan(meta)
+            if distancia_a_meta < distancia_menor:
+                distancia_menor = distancia_a_meta
+                metas_posibles = [meta]
+            elif distancia_a_meta == distancia_menor:
+                metas_posibles.append(meta)
+
+        return choice(metas_posibles)
 
     def _obtener_costo(self, posicion_jugador: Coordenada) -> int:
         """
