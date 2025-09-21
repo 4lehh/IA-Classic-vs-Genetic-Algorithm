@@ -3,6 +3,7 @@
 from collections import deque
 from random import choice
 
+from exceptions import MetaNoEncontradaError
 from jugador import Jugador
 from models import Coordenada, MovimientosPosibles
 
@@ -43,13 +44,19 @@ class JugadorAEstrella(Jugador):
 
         Returns:
             Coordenada: Posición de la meta seleccionada.
+
+        Raises:
+            MetaNoEncontradaError: Si no hay metas disponibles para dirigirse.
         """
 
-        return choice(
-            self.laberinto.metas_mas_cercanas_a_posicion(
-                self.laberinto.jugador_pos, self.metas_visitadas
-            )
+        metas_mas_cercanas = self.laberinto.metas_mas_cercanas_a_posicion(
+            self.laberinto.jugador_pos, self.metas_visitadas
         )
+
+        if not metas_mas_cercanas:
+            raise MetaNoEncontradaError("No hay metas a las cuales dirigirse.")
+
+        return choice(metas_mas_cercanas)
 
     def _obtener_costo(self, posicion_jugador: Coordenada) -> int:
         """

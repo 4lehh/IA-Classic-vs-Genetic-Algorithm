@@ -73,23 +73,11 @@ class JugadorGreedy(Jugador):
         Raises:
             MetaNoEncontradaError: Si no hay metas disponibles para dirigirse.
         """
-        metas_mas_cercanas = []
-        pos_actual = self.laberinto.jugador_pos
-        distancia_minima_encontrada = float("inf")
-
-        for meta in self.laberinto.metas_pos:
-            if meta in self.metas_visitadas:
-                continue
-
-            distancia_a_la_meta = pos_actual.distancia_manhatan(meta)
-
-            if distancia_a_la_meta < distancia_minima_encontrada:
-                distancia_minima_encontrada = distancia_a_la_meta
-                metas_mas_cercanas = [meta]
-            elif distancia_a_la_meta == distancia_minima_encontrada:
-                metas_mas_cercanas.append(meta)
+        metas_mas_cercanas = self.laberinto.metas_mas_cercanas_a_posicion(
+            self.laberinto.jugador_pos, self.metas_visitadas
+        )
 
         if not metas_mas_cercanas:
-            raise MetaNoEncontradaError("No hay metas a la cual dirigirse.")
+            raise MetaNoEncontradaError("No hay metas a las cuales dirigirse.")
 
         return choice(metas_mas_cercanas)
