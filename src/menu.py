@@ -8,7 +8,7 @@ import importlib
 import os
 from typing import Type
 
-from simple_term_menu import TerminalMenu
+import questionary
 
 from jugador import Jugador
 
@@ -49,9 +49,14 @@ def elegir_jugador() -> Type[Jugador]:
         print("No hay jugadores disponibles.")
         exit(0)
 
-    # Mostrar el menú interactivo con las opciones de jugadores disponibles.
-    terminal_menu = TerminalMenu(opciones)
-    menu_entry_index = terminal_menu.show()
+    # Mostrar el menú interactivo con las opciones de jugadores disponibles usando questionary.
+    respuesta = questionary.select("Selecciona el tipo de jugador:", choices=opciones).ask()
+
+    # Obtener el índice de la opción seleccionada
+    if respuesta is not None:
+        menu_entry_index = opciones.index(respuesta)
+    else:
+        menu_entry_index = None
 
     # Importar dinámicamente el módulo correspondiente y buscar la clase de jugador seleccionada.
     if isinstance(menu_entry_index, int):
