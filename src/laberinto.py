@@ -208,6 +208,38 @@ class Laberinto:
                 adyacentes[mov] = self.get_casilla(nueva_posicion)
         return adyacentes
 
+    def metas_mas_cercanas_a_posicion(
+        self, posicion: Coordenada, ignorar_metas: list[Coordenada] = []
+    ) -> list[Coordenada]:
+        """
+        Devuelve una lista con las metas más cercanas a la posición dada (según distancia Manhattan),
+        excluyendo las metas indicadas en 'ignorar_metas'. Si hay varias metas a la misma distancia mínima,
+        todas se incluyen en la lista.
+
+        Args:
+            posicion (Coordenada): Posición desde la cual calcular la distancia a las metas.
+            ignorar_metas (list[Coordenada], opcional): Metas a excluir del cálculo. Por defecto, lista vacía.
+
+        Returns:
+            list[Coordenada]: Lista de metas más cercanas (puede contener más de una si hay empate).
+        """
+
+        # Filtro las metas
+        metas_disponibles = [pos for pos in self.metas_pos if pos not in ignorar_metas]
+
+        metas_posibles = []
+        distancia_menor = float("inf")
+
+        for meta in metas_disponibles:
+            distancia_a_meta = posicion.distancia_manhatan(meta)
+            if distancia_a_meta < distancia_menor:
+                distancia_menor = distancia_a_meta
+                metas_posibles = [meta]
+            elif distancia_a_meta == distancia_menor:
+                metas_posibles.append(meta)
+
+        return metas_posibles
+
     def get_casilla(self, coordenada: Coordenada) -> CasillaLaberinto:
         """
         Devuelve la casilla en la coordenada dada.

@@ -44,22 +44,12 @@ class JugadorAEstrella(Jugador):
         Returns:
             Coordenada: Posición de la meta seleccionada.
         """
-        metas_disponibles = [
-            pos for pos in self.laberinto.metas_pos if pos not in self.metas_visitadas
-        ]
 
-        metas_posibles = []
-        distancia_menor = float("inf")
-
-        for meta in metas_disponibles:
-            distancia_a_meta = self.laberinto.jugador_pos.distancia_manhatan(meta)
-            if distancia_a_meta < distancia_menor:
-                distancia_menor = distancia_a_meta
-                metas_posibles = [meta]
-            elif distancia_a_meta == distancia_menor:
-                metas_posibles.append(meta)
-
-        return choice(metas_posibles)
+        return choice(
+            self.laberinto.metas_mas_cercanas_a_posicion(
+                self.laberinto.jugador_pos, self.metas_visitadas
+            )
+        )
 
     def _obtener_costo(self, posicion_jugador: Coordenada) -> int:
         """
