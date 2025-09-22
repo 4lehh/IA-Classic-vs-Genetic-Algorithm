@@ -24,7 +24,10 @@ class JugadorQlearningEstrella(Jugador):
 
     alpha: float  # tasa de aprendizaje
     gamma: float  # descuento futuro
+    betha: float  # Peso de la Q-table
+    omega: float  # Peso de la heurística (distancia a la meta)
     epsilon: float  # Nivel de exploración
+    posicion_inicial: Optional[Coordenada] = None
     Q: dict[
         Coordenada, dict[MovimientosPosibles, float]
     ]  # Tabla que representa, por cada posicion, que acciones podemos tomar, y por cada una de estas, cual es el valor que nos aporta tomar dicha accion
@@ -59,7 +62,7 @@ class JugadorQlearningEstrella(Jugador):
                 self.Q[Coordenada(i, j)] = {mov: 0.0 for mov in MovimientosPosibles}
 
         self._entrenar()
-        self.mostrar_mapas_calor_Q()
+        # self.mostrar_mapas_calor_Q()
 
     def _eleccion_moverse(self, movimientos_validos) -> MovimientosPosibles:
         """
@@ -75,6 +78,10 @@ class JugadorQlearningEstrella(Jugador):
         Returns:
             MovimientosPosibles: Movimiento seleccionado por la combinación de Q-learning y A*.
         """
+
+        if self.posicion_inicial is None:
+            self.posicion_inicial = self.laberinto.jugador_pos
+
         pos_actual = self.laberinto.jugador_pos
         # Variables auxiliares para la selección del mejor movimiento
         mejor_mov = None
@@ -194,6 +201,7 @@ class JugadorQlearningEstrella(Jugador):
         # Verificar si una posición ya fue visitada para penalizar los ciclos o regresiones
         elif pos_nueva in self.posiciones_visitadas:
             reward -= 5
+
         return reward
 
     def _entrenar(self, n_episodios: int = 10000, max_steps: Optional[int] = None):
@@ -264,3 +272,18 @@ class JugadorQlearningEstrella(Jugador):
         plt.suptitle("Mapas de calor Q por acción")
         plt.tight_layout()
         plt.savefig("asd.png")  # Esto porque mi terminal no esta con el modo interactivo activado
+
+    def desempeño(self) -> float:
+        """
+        Calcula el desempeño del jugador. Usaremos la distancia euclidiana a la meta divido en la cantidad de ticks.
+
+        Returns:
+            float: Desempeñoen relacion distancia / ticks.
+        """
+        return (
+            self.posicion_inicial.distancia_euclidiana(self.laberinto.meta_real_pos)
+            / self.cantidad_tick
+        )
+
+    def __lt__(self, other: "JugadorQlearningEstrella") -> bool:
+        return self.desempeño() < other.desempeño()

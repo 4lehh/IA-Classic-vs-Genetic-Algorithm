@@ -63,18 +63,18 @@ class Laberinto:
 
         self.tipo_anterior_casilla_actual = None
 
+        try:
+            self._crear_laberinto()
+        except Exception as e:
+            print(f"Error al crear el laberinto: {e}")
+            raise
+
         if jugar_instanciado is not None:
             self.jugador = jugar_instanciado
         else:
             self.jugador = clase_jugador(self)
 
         self.ticks_transcurridos = 0
-
-        try:
-            self._crear_laberinto()
-        except Exception as e:
-            print(f"Error al crear el laberinto: {e}")
-            raise
 
         if jugar_instanciado is None:
             print(f"Laberinto creado con Jugador de Tipo {self.jugador.__class__.__name__}.")

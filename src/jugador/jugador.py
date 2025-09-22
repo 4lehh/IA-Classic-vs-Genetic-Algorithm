@@ -13,6 +13,7 @@ class Jugador(ABC):
     """Clase que representa al jugador en el laberinto."""
 
     laberinto: "Laberinto"
+    cantidad_tick: int = 0
 
     def __init__(
         self,
@@ -45,6 +46,7 @@ class Jugador(ABC):
         if not movimientos_validos:
             return MovimientosPosibles.NO_MOVERSE
 
+        self.cantidad_tick += 1
         return self._eleccion_moverse(movimientos_validos)
 
     @abstractmethod
