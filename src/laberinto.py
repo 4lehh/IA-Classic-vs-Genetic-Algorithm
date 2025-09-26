@@ -212,9 +212,9 @@ class Laberinto:
         self, posicion: Coordenada, ignorar_metas: list[Coordenada] = []
     ) -> list[Coordenada]:
         """
-        Devuelve una lista con las metas más cercanas a la posición dada (según distancia Manhattan),
-        excluyendo las metas indicadas en 'ignorar_metas'. Si hay varias metas a la misma distancia mínima,
-        todas se incluyen en la lista.
+        Devuelve una lista con las metas más cercanas a la posición dada (según distancia Manhattan).
+
+        Excluye las metas indicadas en 'ignorar_metas'. Si hay varias metas a la misma distancia mínima, todas se incluyen en la lista.
 
         Args:
             posicion (Coordenada): Posición desde la cual calcular la distancia a las metas.
@@ -223,7 +223,6 @@ class Laberinto:
         Returns:
             list[Coordenada]: Lista de metas más cercanas (puede contener más de una si hay empate).
         """
-
         # Filtro las metas
         metas_disponibles = [pos for pos in self.metas_pos if pos not in ignorar_metas]
 
