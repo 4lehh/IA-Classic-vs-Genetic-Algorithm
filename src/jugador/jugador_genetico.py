@@ -364,7 +364,7 @@ class JugadorGenetico(JugadorQlearningAdaptado):
                 self.lista_generaciones = sorted(self.lista_generaciones, reverse=True)
                 mejor_jugador = self.lista_generaciones[0]
                 segundo_mejor_jugador = self.lista_generaciones[1]
-                self._cruzar(mejor_jugador, segundo_mejor_jugador)
+                self._crossover_and_mutation(mejor_jugador, segundo_mejor_jugador)
 
             print(f"Generación número {gen_num + 1}.")
             for jugador in self.lista_generaciones:
@@ -399,7 +399,7 @@ class JugadorGenetico(JugadorQlearningAdaptado):
         self.posiciones_visitadas = deque(maxlen=10)
         self.posicion_inicial = None
 
-    def _cruzar(
+    def _crossover_and_mutation(
         self,
         mejor_jugador: JugadorQlearningAdaptado,
         segundo_mejor_jugador: JugadorQlearningAdaptado,
@@ -422,19 +422,17 @@ class JugadorGenetico(JugadorQlearningAdaptado):
             jugador.omega = 1 - jugador.betha
             jugador.Q = {}
 
+            # Mutación aleatoria con baja probabilidad (8%)
+            if random() < 0.08:
+                jugador.gamma = random()
+                jugador.alpha = 1 - jugador.gamma
+
+            if random() < 0.08:
+                jugador.betha = random()
+                jugador.omega = 1 - jugador.betha
+
+            # Reiniciar Q-table y variables
             jugador._inicializar_Q_table()
-
-            # Reiniciar Q-table y memorias para cada hijo, descartar
-            # for pos in mejor_jugador.Q:
-            #     jugador.Q[pos] = {}         # Vaciamos la q_table
-            #     for mov in mejor_jugador.Q[pos]:
-            #         # Promedio de los dos padres
-            #         valor_padre = 0.7*mejor_jugador.Q[pos][mov] + 0.3*segundo_mejor_jugador.Q[pos][mov]
-            #         # Mutación ligera
-            #         if random() < tasa_mutacion:
-            #             valor_padre += uniform(-rango_mutacion, rango_mutacion)
-            #         jugador.Q[pos][mov] = valor_padre
-
             jugador.metas_visitadas = []
             jugador.posiciones_visitadas.clear()
 
