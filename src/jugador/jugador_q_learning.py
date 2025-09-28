@@ -162,8 +162,6 @@ class JugadorQlearning(Jugador):
 
         # Episodios en que se entrena (Se genera la Q-table)
         for ep in range(n_episodios):
-            if ep % 10 == 0:
-                print(f"Entrenamiento numero {ep + 1}.")
 
             self.laberinto = Laberinto(
                 dimensiones=(self.laberinto.filas, self.laberinto.columnas),

@@ -108,12 +108,7 @@ def simular_laberinto(
                 limpiar_e_imprimir_laberinto(laberinto)
 
             if laberinto.jugador_gano():
-                if modo_interactivo:
-                    print("¡LLEGÓ A LA META!")
-                    print(f"Se demoró {laberinto.ticks_transcurridos} ticks.")
-                else:
-                    print(f"{laberinto.ticks_transcurridos=}")
-                exit(0)
+                break
 
             if modo_interactivo:
                 preguntar, salir = controlar_flujo(preguntar)
@@ -122,9 +117,12 @@ def simular_laberinto(
 
             contador += 1
 
+        if modo_interactivo:
+            if laberinto.jugador_gano():
+                print("¡LLEGÓ A LA META!")
+            print(f"Se demoró {laberinto.ticks_transcurridos} ticks.")
         else:
-            if modo_interactivo:
-                print("Se superó el límite de tiempo de simulación.")
+            impresion_datos(laberinto=laberinto)
 
     except CreacionLaberintoError as e:
         print(f"Error al crear el laberinto: {e}")
@@ -137,3 +135,101 @@ def simular_laberinto(
     except KeyboardInterrupt:
         print("\nInterrumpido por el usuario.")
         exit(0)
+
+
+def simular_experimento(laberinto: Laberinto, limite_de_ticks: int = 10000):
+    """
+    Ejecuta la simulación del laberinto, moviendo murallas y jugador en cada tick.
+
+    Args:
+        laberinto (Laberinto): Instancia del laberinto a simular.
+        limite_de_ticks (int, opcional): Máximo de ciclos de simulación. Por defecto 10000.
+        modo_interactivo (bool, opcional): Si True, permite interacción paso a paso con el usuario.
+
+    El modo interactivo permite continuar, autoavanzar la simulación o salir según la entrada del usuario.
+    Si el jugador llega a la meta, muestra un mensaje y termina la simulación.
+    Maneja errores comunes y permite interrupción con Ctrl+C.
+    """
+    from time import time
+
+    preguntar = True
+    contador = 0
+    start = time()
+
+    try:
+        while contador < limite_de_ticks:
+            laberinto.mover_murallas()
+            laberinto.mover_jugador()
+
+            if laberinto.jugador_gano():
+                break
+
+            contador += 1
+
+        end = time()
+        impresion_datos(laberinto=laberinto, start=start, end=end)
+
+    except CreacionLaberintoError as e:
+        print(f"Error al crear el laberinto: {e}")
+    except MovimientoInvalidoError as e:
+        print(f"Error de movimiento: {e}")
+    except MetaNoEncontradaError as e:
+        print(f"Error de meta: {e}")
+    except NotImplementedError as e:
+        print(f"No implementado: {e}")
+    except KeyboardInterrupt:
+        print("\nInterrumpido por el usuario.")
+        exit(0)
+
+
+def impresion_datos(laberinto: Laberinto, start=float, end=float):
+    from jugador import (
+        JugadorGenetico,
+        JugadorQlearning,
+        JugadorQlearningEstrella,
+    )
+
+    # Tiempo en milisegundos redondeado
+    tiempo_transcurrido = round(float((end - start) * 1000), 2)
+
+    # Dimensiones filas
+    print(f"{laberinto.filas}", end=",")
+
+    # Dimesiones columnas
+    print(f"{laberinto.columnas}", end=",")
+
+    # Probabilidad generacion muralla
+    print(f"{laberinto.prob_murallas}", end=",")
+
+    # Probabilidad mover muralla
+    print(f"{laberinto.prob_mover_murallas}", end=",")
+
+    # Número de metas
+    print(f"{laberinto.n_metas}", end=",")
+
+    # Imprimir tiempo transcurrido
+    print(f"{tiempo_transcurrido}", end=",")
+
+    # Imprimir ticks
+    print(f"{laberinto.ticks_transcurridos}", end=",")
+
+    # Imprimir si llego
+    print(f"{laberinto.jugador_gano()}", end=",")
+
+    # Datos del jugador
+    if isinstance(laberinto.jugador, (JugadorQlearning, JugadorQlearningEstrella, JugadorGenetico)):
+        # Imprimir tipo jugador
+        print(f"{laberinto.jugador.__class__.__name__}", end=",")
+
+        # Imprimir alpha y gamma
+        print(f"{laberinto.jugador.alpha}", end=",")
+
+        if isinstance(laberinto.jugador, (JugadorQlearningEstrella, JugadorGenetico)):
+            # Imprimir betha y omega
+            print(f"{laberinto.jugador.gamma}", end=",")
+            print(f"{laberinto.jugador.betha}", end=",")
+            print(f"{laberinto.jugador.omega}")
+        else:
+            print(f"{laberinto.jugador.gamma}")
+    else:
+        print(f"{laberinto.jugador.__class__.__name__}")

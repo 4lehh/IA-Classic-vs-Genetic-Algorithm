@@ -76,9 +76,6 @@ class Laberinto:
 
         self.ticks_transcurridos = 0
 
-        if jugar_instanciado is None:
-            print(f"Laberinto creado con Jugador de Tipo {self.jugador.__class__.__name__}.")
-
     def _crear_laberinto(self):
         self.laberinto = []
         caminos_libres = []

@@ -12,7 +12,7 @@ from jugador import (
 )
 from laberinto import Laberinto
 from menu import elegir_jugador
-from simulacion import simular_laberinto
+from simulacion import simular_experimento, simular_laberinto
 
 
 def main():
@@ -60,6 +60,7 @@ def main():
         default=0.01,
         help="Probabilidad de mover murallas (default: 0.01)",
     )
+    parser.add_argument("-e", "--experiments", action="store_true", help="Modo experimentación")
     parser.add_argument("--n-metas", type=int, default=3, help="Cantidad de metas (default: 3)")
     args = parser.parse_args()
 
@@ -85,7 +86,11 @@ def main():
         n_metas=args.n_metas,
         clase_jugador=tipo_jugador,
     )
-    simular_laberinto(laberinto, modo_interactivo=args.interactivo)
+
+    if args.experiments:
+        simular_experimento(laberinto)
+    else:
+        simular_laberinto(laberinto, modo_interactivo=args.interactivo)
 
 
 if __name__ == "__main__":

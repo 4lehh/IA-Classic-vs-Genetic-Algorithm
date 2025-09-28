@@ -1,11 +1,5 @@
-"""
-Módulo que implementa un jugador para laberintos combinando Q-learning y A*.
-
-Este módulo define una clase que fusiona el aprendizaje por refuerzo (Q-learning) con la búsqueda informada de A*.
-"""
-
 from collections import deque
-from random import choice, random
+from random import choice, random, uniform
 from typing import Optional
 
 from exceptions import MetaNoEncontradaError
@@ -13,13 +7,13 @@ from jugador import Jugador
 from models import CasillaLaberinto, Coordenada, MovimientosPosibles
 
 
-class JugadorQlearningEstrella(Jugador):
+class JugadorQlearningAdaptado(Jugador):
     """
-    Jugador que combina Q-learning y A* para aprender a moverse en el laberinto.
+    Jugador que combina Q-learning y A* adaptado para aprender a moverse en el laberinto.
 
-    Esta clase fusiona la exploración y aprendizaje de Q-learning con la heurística de búsqueda
-    informada de A* (A estrella), utilizando recompensas tanto por acercarse a metas como por
-    alcanzar la meta real, y ponderando la distancia heurística en la toma de decisiones.
+    Esta clase fusiona la exploración y aprendizaje de Q-learning con la heurística de búsqueda informada de A*.
+    Se creó para que el jugador genético herede de este y no de la clase base Jugador, ya que sus funciones
+    son necesarias y está adaptado a las particularidades del algoritmo genético.
     """
 
     alpha: float  # Tasa de aprendizaje
@@ -44,7 +38,7 @@ class JugadorQlearningEstrella(Jugador):
         omega: float = 0.5,
     ):
         """
-        Inicializa una instancia de JugadorQlearningEstrella.
+        Inicializa una instancia de JugadorQlearningAdaptado.
 
         Args:
             laberinto: Instancia del laberinto sobre el que se juega.
@@ -64,13 +58,29 @@ class JugadorQlearningEstrella(Jugador):
         self.metas_visitadas = []
         self.posiciones_visitadas = deque(maxlen=10)
 
-        # Inicializar Q-table para cada posición posible
-        for i in range(self.laberinto.filas):
-            for j in range(self.laberinto.columnas):
-                self.Q[Coordenada(i, j)] = {mov: 0.0 for mov in MovimientosPosibles}
-
-        self._entrenar()
+        self._inicializar_Q_table()
+        self._entrenar(100)
         # self.mostrar_mapas_calor_Q()
+
+    def _seleccionar_meta(self) -> Coordenada:
+        """
+        Selecciona la meta no visitada más cercana al jugador (según distancia Manhattan).
+
+        Si hay varias metas a la misma distancia mínima, selecciona una al azar entre ellas.
+
+        Returns:
+            Coordenada: Posición de la meta seleccionada.
+        Raises:
+            MetaNoEncontradaError: Si no hay metas disponibles para dirigirse.
+        """
+        metas_mas_cercanas = self.laberinto.metas_mas_cercanas_a_posicion(
+            self.laberinto.jugador_pos, self.metas_visitadas
+        )
+
+        if not metas_mas_cercanas:
+            raise MetaNoEncontradaError("No hay metas a las cuales dirigirse.")
+
+        return choice(metas_mas_cercanas)
 
     def _eleccion_moverse(
         self, movimientos_validos: list[MovimientosPosibles]
@@ -102,7 +112,6 @@ class JugadorQlearningEstrella(Jugador):
             q_vals = {mov: self.Q[pos_actual][mov] for mov in movimientos_validos}
             meta_objetivo = self._seleccionar_meta()
             for mov, valor_q in q_vals.items():
-                # balance = betha*valor_que_aporta_la_accion_q_table - omega*distancia_euclidiana_a_la_meta
                 balance = self.betha * valor_q - self.omega * meta_objetivo.distancia_euclidiana(
                     pos_actual + mov
                 )
@@ -110,58 +119,29 @@ class JugadorQlearningEstrella(Jugador):
                     mejor_balance = balance
                     mejor_mov = mov
 
-            # Por si no elige nada
             if mejor_mov is None:
                 return MovimientosPosibles.NO_MOVERSE
 
-        # Simular nueva posición
         nueva_posicion = pos_actual + mejor_mov
 
         if not self.laberinto.coordenada_en_laberinto(nueva_posicion):
             return MovimientosPosibles.NO_MOVERSE
 
-        # Calcular recompensa
         reward = self._calcular_recompensa(
             pos_actual, nueva_posicion, self.laberinto.get_casilla(nueva_posicion)
         )
 
-        # Actualizar Q-table usando la ecuación de Q-learning
+        # Actualizar Q-table usando la ecuacion de Q-learning
         q_actual = self.Q[pos_actual][mejor_mov]
         q_max_sig = max(self.Q[nueva_posicion].values())
-
         self.Q[pos_actual][mejor_mov] += self.alpha * (reward + self.gamma * q_max_sig - q_actual)
 
-        # Si llega a una meta, la marca como visitada
         if nueva_posicion in self.laberinto.metas_pos:
             self.metas_visitadas.append(nueva_posicion)
 
-        # Recuerda las posiciones pasadas para penalizar regresiones
         self.posiciones_visitadas.append(nueva_posicion)
-
-        # Decae epsilon cada vez que elige
         self.epsilon = max(self.epsilon * 0.95, 0.01)
-
         return mejor_mov
-
-    def _seleccionar_meta(self) -> Coordenada:
-        """
-        Selecciona la meta no visitada más cercana al jugador (según distancia Manhattan).
-
-        Si hay varias metas a la misma distancia mínima, selecciona una al azar entre ellas.
-
-        Returns:
-            Coordenada: Posición de la meta seleccionada.
-        Raises:
-            MetaNoEncontradaError: Si no hay metas disponibles para dirigirse.
-        """
-        metas_mas_cercanas = self.laberinto.metas_mas_cercanas_a_posicion(
-            self.laberinto.jugador_pos, self.metas_visitadas
-        )
-
-        if not metas_mas_cercanas:
-            raise MetaNoEncontradaError("No hay metas a las cuales dirigirse.")
-
-        return choice(metas_mas_cercanas)
 
     def _calcular_recompensa(
         self, pos_actual: Coordenada, pos_nueva: Coordenada, casilla: CasillaLaberinto
@@ -177,7 +157,6 @@ class JugadorQlearningEstrella(Jugador):
         Returns:
             Recompensa calculada.
         """
-        # Distancia Manhattan a la meta más cercana
         metas_no_visitadas = [
             pos for pos in self.laberinto.metas_pos if pos not in self.metas_visitadas
         ]
@@ -196,10 +175,11 @@ class JugadorQlearningEstrella(Jugador):
             reward += 50
         elif casilla == CasillaLaberinto.META_FALSA:
             reward -= 50
-        # Penalización por ciclos o regresiones
+        # Verificar si una posición ya fue visitada para penalizar los ciclos o regresiones
         elif pos_nueva in self.posiciones_visitadas:
-            reward -= 5
-
+            reward -= 10
+        if len(self.posiciones_visitadas) >= 2 and pos_nueva == self.posiciones_visitadas[-2]:
+            reward -= 20  # penaliza retroceder al estado anterior inmediato
         return reward
 
     def _entrenar(self, n_episodios: int = 10000, max_steps: Optional[int] = None):
@@ -225,18 +205,17 @@ class JugadorQlearningEstrella(Jugador):
 
         # Episodios en que se entrena (Se genera la Q-table)
         for ep in range(n_episodios):
-
             self.laberinto = Laberinto(
                 dimensiones=(self.laberinto.filas, self.laberinto.columnas),
                 prob_murallas=self.laberinto.prob_murallas,
                 prob_mover_murallas=self.laberinto.prob_mover_murallas,
                 n_metas=self.laberinto.n_metas,
-                clase_jugador=JugadorQlearningEstrella,
+                clase_jugador=JugadorQlearningAdaptado,
                 jugar_instanciado=self,
             )
             self.epsilon = epsilon
 
-            # Recorrido del laberinto con límite de pasos
+            # Se realiza el recorrido del laberinto con un tiempo maximo de entrenamiento (ticks o pasos)
             for _ in range(pasos_maximos):
                 self.laberinto.tick()
                 if self.laberinto.jugador_gano():
@@ -245,7 +224,7 @@ class JugadorQlearningEstrella(Jugador):
             self.metas_visitadas = []
             self.posiciones_visitadas.clear()
 
-        # Restaurar estado original
+        # Reinicio las variables a su estado anterior del entrenamiento
         self.laberinto = laberinto_original
         self.epsilon = epsilon
 
@@ -273,20 +252,37 @@ class JugadorQlearningEstrella(Jugador):
         plt.tight_layout()
         plt.savefig("asd.png")  # Esto porque mi terminal no esta con el modo interactivo activado
 
-    def desempeño(self) -> float:
+    def desempeno(self) -> float:
         """
-        Calcula el desempeño del jugador: distancia euclidiana a la meta dividido entre la cantidad de ticks.
+        Calcula el desempeño del jugador: combina cercanía a la meta y eficiencia (menos ticks).
 
         Returns:
-            Desempeño en relación distancia / ticks.
+            Desempeño como valor float.
         """
-        if self.posicion_inicial is None:
-            raise ValueError("La posición inicial es Nula")
-        return (
-            self.posicion_inicial.distancia_euclidiana(self.laberinto.meta_real_pos)
-            / self.cantidad_tick
-        )
+        distancia = self.laberinto.jugador_pos.distancia_euclidiana(self.laberinto.meta_real_pos)
 
-    def __lt__(self, other: "JugadorQlearningEstrella") -> bool:
+        # Normalizamos eficiencia (menos ticks => valor más alto)
+        eficiencia = 1 / (1 + self.cantidad_tick)
+
+        if distancia == 0:
+            # Llegó a la meta: bonificación clara + eficiencia
+            bonus = 2.0  # <-- aquí ajustas el "premio por ganar"
+            return bonus + eficiencia
+
+        # Normalizamos cercanía (más cerca => valor más alto)
+        cercania = 1 / (1 + distancia)
+
+        # Combinar con pesos ajustables
+        w_cercania = 0.8
+        w_eficiencia = 0.2
+        return w_cercania * cercania + w_eficiencia * eficiencia
+
+    def _inicializar_Q_table(self):
+        """Inicializa la Q-table para todas las posiciones posibles del laberinto."""
+        for i in range(self.laberinto.filas):
+            for j in range(self.laberinto.columnas):
+                self.Q[Coordenada(i, j)] = {mov: 0.0 for mov in MovimientosPosibles}
+
+    def __lt__(self, other: "JugadorQlearningAdaptado") -> bool:
         """Permite comparar dos jugadores por desempeño."""
-        return self.desempeño() < other.desempeño()
+        return self.desempeno() < other.desempeno()
