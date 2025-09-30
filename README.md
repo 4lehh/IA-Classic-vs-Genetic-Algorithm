@@ -154,19 +154,29 @@ pdm run python3 ./src/main.py -i
 
 ### Parámetros de Ejecución
 
-- **TAMAÑO LABERINTO:** 20x20 por defecto (definido en `main.py`)
+- Seleccion de agentes con la flag `-a`
+```bash
+pdm run python3 ./src/main.py -i -a <Agente>
+``` 
 - **Agentes disponibles:**
-  - Random 
-  - Greedy
-  - A*
-  - Q-Learning
-  - Q-Learning + A*
-  - Genético
+  - JugadorRandom 
+  - JugadorGreedy
+  - JugadorAEstrella
+  - JugadorQ-Learning
+  - JugadorQ-LearningEstrella*
+  - JugadorGenético
+
+### Otros parámetros
+- `-i`, `--interactivo`: Activa el modo interactivo.
+- `-pg PROB`, `--prob-gen-murallas PROB`: Probabilidad de generar murallas (default: `0.2`),
+- `-pm PROB`, `--prob-mover-murallas PROB`: Probabilidad de mover murallas (default: `0.01`).
+- `-e`, `--experiments`: Activa el modo de experimentación.
+- `--n-metas N`: Cantidad de metas a generar en el laberinto (default: `3`).
 
 ## 📊 Análisis de Resultados
 
 > [!WARNING]
-> **Ejecuta primero los benchmarks:** El script de análisis requiere que exista un CSV llamado resultados.csv en resultados/. Asegúrate de tener los datos.
+> **Ejecuta el modo experimentación:** El script de análisis requiere que exista un CSV llamado resultados.csv en resultados/. Asegúrate de tener los datos.
 
 ### Ejecutar Análisis Python
 
@@ -191,13 +201,12 @@ filas,columnas,prob_murallas,prob_mover_murallas,n_metas,tiempo,ticks,llego,juga
 
 ## 🚀 Algoritmos Implementados
 
-### Algoritmos clásicos
 - **Random:** Algoritmo con movimientos pseudo-aleatorios.
 - **Greedy:** Algoritmo que sigue una heurística simple.
 - **LRTAStar (Learning Real-Time A Star):** Algoritmo que busca la mejor solución local, sumada a la función F tradicional de A*.
 - **Q-Learning:** Algoritmo de aprendizaje por refuerzo.
 - **Q-Learning + LRTAStar:** Algoritmo híbrido entre Q-Learning y LRTA*.
-- **Genetico:** Algoritmo genetico implementado por el equipo.
+- **Genetico:** Algoritmo genetico implementado por el equipo basado en el hibrido Q-Learning + LRTA*.
 
 ## 📈 Resultados y Análisis
 
