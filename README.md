@@ -6,6 +6,12 @@
 
 Implementación de algoritmos clásicos, algoritmos de aprendizaje por refuerzo y algoritmos genéticos para encontrar soluciones en entornos dinámicos.
 
+<div align="center">
+    <a href="./docs/Informe.pdf" target="_blank">
+    <img src="https://img.shields.io/badge/📥_Descargar-PDF-red?style=for-the-badge" />
+    </a>
+</div>
+
 </div>
 
 ## 👥 Integrantes del Equipo
@@ -16,15 +22,16 @@ Implementación de algoritmos clásicos, algoritmos de aprendizaje por refuerzo 
 | Javier Alejandro Campos Contreras | [@4lehh](https://github.com/4lehh) | 2023432857 |
 
 ## 📋 Tabla de Contenidos
-- [🚀 Inicio Rápido](#-inicio-rápido)
-- [🛠️ Tecnologías Utilizadas](#-tecnologias-usadas)
-- [📋 Requisitos Previos](#️-requisitos-previos)
-- [⚙️ Instalación](#-instalacion)
-- [🔧 Configuración](#️-configuracion)
-- [▶️ Ejecución](#️-ejecución)
-- [📊 Análisis de Resultados](#-análisis-de-resultados)
-- [🚀 Algoritmos Implementados](#️-algoritmos-implementados)
-- [📈 Resultados y Análisis](#-resultados-y-analisis)
+- [🚀 Inicio Rápido](#inicio-rapido)
+- [🛠️ Tecnologías Utilizadas](#tecnologias-utilizadas)
+- [📋 Requisitos Previos](#requisitos-previos)
+- [⚙️ Instalación](#instalacion)
+- [🔧 Configuración](#configuracion)
+- [▶️ Ejecución](#ejecucion)
+- [📊 Análisis de Resultados](#analisis-de-resultados)
+- [🚀 Algoritmos Implementados](#algoritmos-implementados)
+- [📈 Resultados y Análisis](#resultados-y-analisis)
+
 
 ## 🚀 Inicio Rápido
 
@@ -207,6 +214,7 @@ filas,columnas,prob_murallas,prob_mover_murallas,n_metas,tiempo,ticks,llego,juga
 - **Q-Learning:** Algoritmo de aprendizaje por refuerzo.
 - **Q-Learning + LRTAStar:** Algoritmo híbrido entre Q-Learning y LRTA*.
 - **Genetico:** Algoritmo genetico implementado por el equipo basado en el hibrido Q-Learning + LRTA*.
+
 
 ## 📈 Resultados y Análisis
 
